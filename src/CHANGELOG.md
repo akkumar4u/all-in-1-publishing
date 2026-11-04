@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.42 (Horizon) — Preview and apply redirected dealer websites
+- Automatically resolve redirects for the Salesforce Website field and highlight the final destination.
+- Add a Use final URL action that updates the website and derived WordPress admin URL before applying the ticket.
+- Reuse the Bulk redirect resolver for consistent redirect behavior.
+
 ## 1.9.41 (Horizon) — Auto-check CTA links and flag redirects
 - Automatically check Landing/Comparison CTA URLs after Doc import, code edits, and website URL edits; remove the manual check button.
 - Mark redirects red as errors, even when the final destination responds HTTP 200. The shared checker also applies this status in Bulk review.

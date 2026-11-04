@@ -5,6 +5,7 @@
  */
 import { classifyTask, TASK_TYPES } from './sf_classify.js';
 import { SF_CONFIG } from './sf_config.js';
+import { resolveWebsiteRedirect } from '../bulk/pipeline.js';
 
 const $ = id => document.getElementById(id);
 const STATE_KEY = 'sfLookupState';
@@ -19,6 +20,9 @@ const docSelect = $('sf-doc-select');
 const docCustom = $('sf-doc-custom');
 const websiteInput = $('sf-website');
 const adminInput = $('sf-admin');
+const redirectBox = $('sf-website-redirect');
+const redirectUrl = $('sf-website-redirect-url');
+const useRedirectBtn = $('sf-use-website-redirect');
 const taskSelect = $('sf-task-type');
 const group1Box = $('sf-group1');
 const taskNote = $('sf-task-note');
@@ -29,6 +33,8 @@ const logText = $('sf-log-text');
 let current = null;            // latest lookup state
 let appliedThisPopup = false;
 let fieldsFor = null;          // which lookup the editable fields were filled from
+let redirectCheckId = 0;
+let detectedRedirect = '';
 
 function setStatus(text, kind) {
   statusEl.textContent = text || '';
@@ -160,6 +166,7 @@ function renderFields(state) {
   docCustom.value = docSelect.value || '';     // the full link, shown so it can be cross-checked
   websiteInput.value = state.website || '';
   adminInput.value = state.adminUrl || '';
+  checkWebsiteRedirect(websiteInput.value);
 }
 
 const chosenDoc = () => docCustom.value.trim() || null;
@@ -167,10 +174,40 @@ docSelect.addEventListener('change', () => { docCustom.value = docSelect.value |
 
 // Editing the website re-derives the admin URL (the admin box can still be edited after that).
 websiteInput.addEventListener('input', () => {
+  detectedRedirect = '';
+  redirectBox.hidden = true;
   let v = websiteInput.value.trim();
   if (!v) { adminInput.value = ''; return; }
   if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
   try { adminInput.value = new URL(v).origin + SF_CONFIG.wpAdminPath; } catch { /* still typing */ }
+  clearTimeout(websiteInput._redirectTimer);
+  websiteInput._redirectTimer = setTimeout(() => checkWebsiteRedirect(websiteInput.value), 650);
+});
+
+async function checkWebsiteRedirect(value) {
+  const checkId = ++redirectCheckId;
+  detectedRedirect = '';
+  redirectBox.hidden = true;
+  const website = String(value || '').trim();
+  if (!website) return;
+  const finalUrl = await resolveWebsiteRedirect(website);
+  if (checkId !== redirectCheckId || website !== websiteInput.value.trim() || !finalUrl) return;
+  let original = '';
+  try { original = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(website) ? website : 'https://' + website).href; } catch { return; }
+  if (finalUrl.replace(/\/$/, '').toLowerCase() === original.replace(/\/$/, '').toLowerCase()) return;
+  detectedRedirect = finalUrl;
+  redirectUrl.href = finalUrl;
+  redirectUrl.textContent = finalUrl;
+  redirectBox.hidden = false;
+}
+
+useRedirectBtn.addEventListener('click', () => {
+  if (!detectedRedirect) return;
+  websiteInput.value = detectedRedirect;
+  websiteInput.dispatchEvent(new Event('input', { bubbles: true }));
+  current = { ...current, website: detectedRedirect, adminUrl: adminInput.value.trim() || null };
+  detectedRedirect = '';
+  redirectBox.hidden = true;
 });
 
 function render(state, { allowApply }) {

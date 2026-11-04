@@ -12,6 +12,9 @@
 #sf-card #sf-fields { margin-top: 10px; }
 #sf-card #sf-fields select, #sf-card #sf-fields input { width: 100%; box-sizing: border-box; }
 #sf-card #sf-doc-custom { margin: 4px 0 8px; }
+#sf-card .sf-redirect { margin: 4px 0 8px; padding: 8px; border: 1px solid #d83b3b; border-left: 4px solid #d83b3b; border-radius: 6px; background: #fff2f2; color: #8a1717; font-size: 11px; }
+#sf-card .sf-redirect a { display: block; margin: 4px 0 6px; color: #a31313; font-weight: 700; overflow-wrap: anywhere; }
+#sf-card .sf-redirect button { padding: 5px 9px; border: 0; border-radius: 4px; background: #a31313; color: #fff; cursor: pointer; }
 #sf-card #sf-log { margin-top: 8px; font-size: 11px; color: #6b8580; }
 #sf-card #sf-log pre { white-space: pre-wrap; margin-top: 4px; max-height: 120px; overflow: auto; }
 #sf-card #sf-task { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e3ece8; }
