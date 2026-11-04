@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>All in 1 Publishing Automation Tool</title>
+    <link rel="stylesheet" href="hub_scoped.css">
+    <link rel="stylesheet" href="salesforce/sf_popup.css">
+    <link rel="stylesheet" href="blog_scoped.css">
+    <link rel="stylesheet" href="links/il_popup.css">
+    <link rel="stylesheet" href="premium.css">
+  </head>
+  <body>
+    <div id="update-banner" hidden>
+      <div style="position:sticky;top:0;z-index:50;background:#0b5a4a;color:#fff;padding:8px 12px;font:600 12px/1.4 system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between">
+        <span>A new version is ready. Updating clears what is typed in this panel.</span>
+        <button id="update-apply" type="button" style="background:#fff;color:#0b5a4a;border:0;border-radius:6px;padding:5px 10px;font-weight:700;cursor:pointer">Update now</button>
+      </div>
+    </div>
+    <div style="padding:6px 12px 0;text-align:right">
+      <button id="open-bulk" type="button" style="font:600 12px system-ui,sans-serif;border:1px solid #0b5a4a;color:#0b5a4a;background:transparent;border-radius:8px;padding:5px 10px;cursor:pointer">Bulk dashboard ↗</button>
+    </div>
+    <main>
+      <!-- ══════════════════ HUB PUBLISHER — markup unchanged from the original extension ══════════════════ -->
+      <div id="panel-hub">
+        <header class="header hero">
+          <div class="hero-row">
+            <div>
+              <p class="eyebrow">CARS.COM</p>
+              <h1>All in 1 Publishing Automation Tool</h1>
+              <p class="hero-sub">Hub · Landing · Comparison · Blog</p>
+            </div>
+            <button id="clear-all" type="button" title="Clear everything and start blank">&#8635; Clear all</button>
+          </div>
+        </header>
+
+        <div class="publisher-tabs" role="tablist" aria-label="Publishing area">
+          <button id="tab-hubs" class="publisher-tab is-active" type="button" role="tab" aria-selected="true">Hub Pages</button>
+          <button id="tab-publishing" class="publisher-tab" type="button" role="tab" aria-selected="false">Google Doc Publishing</button>
+        </div>
+
+        <!-- ── Salesforce ticket lookup (works for Publishing AND Hub pages) ── -->
+        <section id="sf-card" class="card form-card">
+          <div class="sf-row">
+            <label>
+              Salesforce ticket <small>(type only the number)</small>
+              <input id="sf-ticket" type="text" placeholder="ST-02061755" autocomplete="off">
+            </label>
+            <button id="sf-run" class="btn-secondary" type="button">Find</button>
+          </div>
+          <label class="sf-check"><input id="sf-auto-import" type="checkbox" checked> Run the import automatically</label>
+          <label class="sf-check"><input id="auto-run" type="checkbox" checked> Run everything automatically <small>(import &rarr; image &rarr; preview &rarr; open WordPress &rarr; fill + check)</small></label>
+          <div id="auto-run-box" hidden>
+            <div id="auto-run-steps"></div>
+            <p id="auto-run-note" role="status"></p>
+            <button id="auto-run-stop" type="button" class="secondary">Stop</button>
+          </div>
+          <p id="sf-status" role="status"></p>
+          <div id="sf-result" hidden>
+            <dl id="sf-summary"></dl>
+            <div id="sf-fields">
+              <label>Google Doc <small>(auto-picked — change if needed)</small>
+                <select id="sf-doc-select"></select>
+              </label>
+              <input id="sf-doc-custom" type="text" placeholder="Full Google Doc link (edit or paste another)" autocomplete="off" spellcheck="false">
+              <label>Website <small>(edit to correct)</small>
+                <input id="sf-website" type="text" placeholder="https://dealer.com" autocomplete="off">
+              </label>
+              <label>WordPress Admin URL
+                <input id="sf-admin" type="text" placeholder="https://dealer.com/wp/wp-admin" autocomplete="off">
+              </label>
+            </div>
+            <div id="sf-task">
+              <label>
+                Task type
+                <select id="sf-task-type">
+                  <option value="">Not sure — pick one</option>
+                  <optgroup label="Publishing">
+                    <option value="publishing:blog">Blog</option>
+                    <option value="publishing:landing">Landing Page</option>
+                    <option value="publishing:comparison">Comparison</option>
+                    <option value="publishing:inventory-creation">Inventory Page Creation</option>
+                  </optgroup>
+                  <optgroup label="Enhancement">
+                    <option value="enhancement:landing">Landing Page</option>
+                    <option value="enhancement:inventory">Inventory Page Optimization</option>
+                    <option value="enhancement:vrp">VRP Enhancement</option>
+                  </optgroup>
+                  <optgroup label="Hub Pages">
+                    <option value="hub:service">Service &amp; Parts Information</option>
+                    <option value="hub:research">Make Research</option>
+                    <option value="hub:finance">Finance &amp; Insurance Information</option>
+                  </optgroup>
+                </select>
+              </label>
+              <label class="sf-check"><input id="sf-group1" type="checkbox"> Group 1 ticket</label>
+              <p id="sf-task-note"></p>
+              <button id="sf-apply" class="btn-secondary" type="button">Apply to form</button>
+            </div>
+          </div>
+          <button id="sf-manual" type="button">Work without a ticket (manual)</button>
+          <details id="sf-log" hidden><summary>Lookup details</summary><pre id="sf-log-text"></pre></details>
+        </section>
+
+        <!-- ── Form ── -->
+        <section id="hub-workflow" class="card form-card">
+          <label>
+            Hub Type
+            <select id="hub-type">
+              <option value="service">Service &amp; Parts Information</option>
+              <option value="research">Make Research</option>
+              <option value="finance">Finance &amp; Insurance Information</option>
+            </select>
+          </label>
+
+          <label class="field-group" data-hub-types="service,research,finance">
+            Brand Name <span class="required">*</span>
+            <input id="brand-name" type="text" placeholder="e.g. Acura, CDJR, Toyota" autocomplete="off">
+          </label>
+
+          <label class="field-group" data-hub-types="service,research,finance">
+            WordPress Admin URL <span class="required">*</span>
+            <input id="admin-url" type="url" placeholder="https://example.com/wp/wp-admin" autocomplete="off">
+          </label>
+
+          <details class="optional-fields field-group" data-hub-types="service,research,finance">
+            <summary>Optional URL overrides</summary>
+            <label class="field-group" data-hub-types="service">
+              Service Specials URL <small>(Service hub banner)</small>
+              <input id="service-specials-url" type="text" placeholder="/service-specials/" autocomplete="off">
+            </label>
+            <label class="field-group" data-hub-types="service">
+              Parts Specials URL <small>(Service hub banner)</small>
+              <input id="parts-specials-url" type="text" placeholder="/parts-specials/" autocomplete="off">
+            </label>
+            <label class="field-group" data-hub-types="service,research,finance">
+              Research Hub URL <small>(for cross-linking between hubs)</small>
+              <input id="hub-research-url" type="text" placeholder="/[make]-research/" autocomplete="off">
+            </label>
+            <label class="field-group" data-hub-types="service,research,finance">
+              Finance Hub URL <small>(for cross-linking between hubs)</small>
+              <input id="hub-finance-url" type="text" placeholder="/finance/car-buying-tips/" autocomplete="off">
+            </label>
+            <label class="field-group" data-hub-types="service,research,finance">
+              Service Hub URL <small>(for cross-linking between hubs)</small>
+              <input id="hub-service-url" type="text" placeholder="/service/service-and-parts-tips/" autocomplete="off">
+            </label>
+            <label class="field-group" data-hub-types="research">
+              New Vehicles URL <small>(Research hub banner)</small>
+              <input id="research-new-vehicles-url" type="text" placeholder="/new-vehicles/" autocomplete="off">
+            </label>
+            <label class="field-group" data-hub-types="research,finance">
+              Contact Us URL <small>(Research &amp; Finance banners)</small>
+              <input id="contact-us-url" type="text" placeholder="/contact-us/" autocomplete="off">
+            </label>
+            <label class="field-group" data-hub-types="finance">
+              Finance Page URL <small>(Finance hub banner)</small>
+              <input id="finance-page-url" type="text" placeholder="/finance/" autocomplete="off">
+            </label>
+          </details>
+
+          <div class="field-group" data-hub-types="service,research,finance">
+            <button id="generate" type="button">Generate Preview</button>
+            <button id="save-admin" class="btn-secondary" type="button">Save WordPress URL</button>
+            <p id="form-status" role="status"></p>
+          </div>
+        </section>
+
+        <section id="publishing-workflow" class="card form-card" hidden>
+          <label>
+            Publishing Type
+            <select id="publishing-type">
+              <option value="comparison">Comparison Page</option>
+              <option value="blog">Blog Publishing</option>
+              <option value="landing">Landing Page Publishing</option>
+              <option value="vrp">VRP Page</option>
+            </select>
+          </label>
+
+          <div class="field-group" data-publishing-types="comparison,landing">
+            <label>
+              Google Doc URL <small>(imports page details and clean content)</small>
+              <input id="comparison-doc-url" type="url" placeholder="https://docs.google.com/document/d/..." autocomplete="off">
+            </label>
+            <button id="import-doc" class="btn-secondary" type="button">Import from Google Doc</button>
+            <p id="import-status" role="status"></p>
+            <div class="cta-review" data-publishing-types="comparison,landing">
+              <label for="comparison-button-code">Button Code / CTA <small>(from the Google Doc; edit here to update it)</small></label>
+              <textarea id="comparison-button-code" rows="3" spellcheck="false" placeholder="&lt;a class=&quot;button primary-button&quot; href=&quot;/contact-us/&quot;&gt;Contact Us&lt;/a&gt;"></textarea>
+              <div class="cta-check-head"><span id="comparison-button-status" role="status">No CTA URLs checked.</span><small>Auto-checks after import or edits.</small></div>
+              <ul id="comparison-button-results" class="cta-url-results"></ul>
+            </div>
+          </div>
+
+          <label class="field-group" data-publishing-types="comparison,landing">
+            Page Title <span class="required">*</span>
+            <input id="comparison-page-title" type="text" placeholder="e.g. 2021 Toyota Corolla vs. 2021 Toyota Camry" autocomplete="off">
+          </label>
+
+          <label class="field-group" data-publishing-types="comparison,landing">
+            Page Slug <small>(auto-fills from the Google Doc's "Page Slug" field — edit if needed)</small>
+            <input id="comparison-page-slug" type="text" placeholder="e.g. 2026-toyota-highlander-vs-grand-highlander" autocomplete="off">
+          </label>
+
+          <div id="vrp-mode-panel" class="field-group" data-publishing-types="landing,vrp" hidden>
+            <strong>VRP page action</strong>
+            <select id="vrp-page-action" hidden aria-hidden="true" tabindex="-1">
+              <option value="new">Create a new page</option>
+              <option value="existing">Update an existing page</option>
+            </select>
+            <div class="vrp-action-buttons" role="group" aria-label="VRP page action">
+              <button id="vrp-new-btn" type="button" aria-pressed="true">Create new page</button>
+              <button id="vrp-existing-btn" type="button" aria-pressed="false">Update existing page</button>
+            </div>
+            <small>VRP Enhancement updates only Lightning VRP SEO Content, Meta Title, and Meta Description. It does not add a blog feed or image.</small>
+          </div>
+
+          <div id="page-enhancement-panel" class="field-group" data-publishing-types="page-enhancement" hidden>
+            <strong>Page Enhancement</strong>
+            <small>Choose an existing page from the sitemap. Only its content, Meta Title, and Meta Description will be updated.</small>
+          </div>
+          <div id="vrp-existing-page-picker" class="field-group" data-publishing-types="landing,vrp,page-enhancement" hidden>
+            <label>Search pages from this website's sitemap
+              <input id="vrp-page-search" type="search" placeholder="Page title or URL words" autocomplete="off">
+            </label>
+            <label>Manual sitemap URL <small>(when robots.txt does not list one)</small><input id="vrp-sitemap-url" type="url" placeholder="https://example.com/page-sitemap.xml" autocomplete="url"></label>
+            <button id="vrp-page-search-btn" class="btn-secondary" type="button">Find related pages</button>
+            <label>Or add a page URL manually <small>(select it below to edit that page)</small><input id="vrp-manual-page-url" type="url" placeholder="https://example.com/page-to-edit/" autocomplete="url"></label>
+            <button id="vrp-manual-page-btn" class="btn-secondary" type="button">Use this page to edit</button>
+            <div id="vrp-page-suggestions" class="vrp-page-suggestions" role="listbox"></div>
+            <small id="vrp-selected-page"></small>
+            <p id="vrp-page-search-status" role="status"></p>
+          </div>
+
+          <label class="field-group" data-publishing-types="landing">
+            Page type <small>(suggests the Parent Page below)</small>
+            <select id="landing-page-type">
+              <option value="">Choose the page type…</option>
+            </select>
+          </label>
+
+          <label class="field-group" data-publishing-types="comparison,landing">
+            Parent Page <small id="landing-parent-context">(Page Attributes → Parent)</small>
+            <select id="landing-parent">
+              <option value="__auto">Auto (from the page title)</option>
+              <option value="">No parent</option>
+              <option value="Manufacturer Information">Manufacturer Information</option>
+              <option value="Research Hub">Research Hub</option>
+              <option value="New Vehicles">New Vehicles</option>
+              <option value="Used Vehicles">Used Vehicles</option>
+              <option value="__other">Other (type below)…</option>
+            </select>
+            <input id="landing-parent-custom" type="text" placeholder="Exact parent page title" autocomplete="off" hidden>
+            <small id="landing-parent-hint"></small>
+            <button id="landing-parent-load" type="button">Load parents from WordPress</button>
+            <small id="landing-parent-suggest" style="display:block"></small>
+          </label>
+
+          <div class="field-group" data-publishing-types="comparison,landing" id="landing-image-box">
+            <label for="landing-image-query">Banner image <small>(1400×500 — search text is editable)</small></label>
+            <label for="landing-image-source">Image library</label>
+            <select id="landing-image-source"><option value="dealer">Dealer Inspire Image Library</option><option value="cloudinary">Cloudinary Creative Image Library</option></select>
+            <input id="landing-image-query" type="text" placeholder="2026 BMW i4  (year + make + model)" autocomplete="off">
+            <div id="landing-image-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0"></div>
+            <input id="landing-image-alt" type="text" placeholder="Alt text (defaults to the search text)" autocomplete="off">
+            <label style="display:flex;gap:6px;align-items:center;font-size:12px"><input id="landing-image-choose" type="checkbox"> Let me choose the image (otherwise a good match is picked at random)</label>
+            <button id="landing-image-fetch" type="button">Find &amp; download image</button>
+            <div id="landing-image-choices" hidden style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px"></div>
+            <div id="landing-image-status" class="status"></div>
+            <img id="landing-image-preview" alt="" hidden style="max-width:100%;margin-top:6px;border-radius:6px">
+            <button type="button" id="landing-image-save" hidden style="margin-top:6px">Save image to my computer</button>
+          </div>
+
+          <label class="field-group" data-publishing-types="comparison,landing">
+            Bottom row <small>(Group 1 tickets use the contact form)</small>
+            <select id="landing-bottom">
+              <option value="blog">Blog feed — "More from …"</option>
+              <option value="form">Group 1 contact form (Gravity Form)</option>
+            </select>
+          </label>
+
+          <label class="field-group" data-publishing-types="comparison,landing">
+            WordPress Admin URL <span class="required">*</span>
+            <input id="publishing-admin-url" type="url" placeholder="https://example.com/wp/wp-admin" autocomplete="off">
+          </label>
+
+          <details class="optional-fields field-group" data-publishing-types="comparison,landing">
+            <summary>Page SEO &amp; content</summary>
+            <label class="field-group" data-publishing-types="comparison,landing">
+              Meta Title <small>(from Google Doc, or type your own)</small>
+              <input id="comparison-meta-title" type="text" placeholder="Paste or import from Google Doc" autocomplete="off">
+            </label>
+            <label class="field-group" data-publishing-types="comparison,landing">
+              Meta Description <small>(from Google Doc, or type your own)</small>
+              <input id="comparison-meta-description" type="text" placeholder="Paste or import from Google Doc" autocomplete="off">
+            </label>
+            <label class="field-group" data-publishing-types="comparison,landing">
+              Content HTML <small id="content-html-hint">cleaned from the Google Doc</small>
+              <textarea id="comparison-cta-body" rows="4" placeholder="&lt;p&gt;Your body copy…&lt;/p&gt;"></textarea>
+            </label>
+            <div id="content-selection" class="field-group" data-publishing-types="comparison,landing" hidden>
+              <strong>Imported Content Review</strong>
+              <small>Select the sections that belong in Content HTML. Metadata and template instructions are excluded automatically.</small>
+              <div id="content-selection-items"></div>
+            </div>
+            <div id="il-panel" class="il-panel" hidden>
+              <strong>Internal link suggestions</strong>
+              <small>Best 7 suggestions first (use “Show more” for the rest): red text in the doc, your fixed phrases (e.g. “new vehicles” → /new-vehicles/) and phrases that match a page of the site. Each page is checked live. Tick the ones you approve; unticked phrases stay plain text.</small>
+              <div id="il-list" class="il-list"></div>
+              <p id="il-status" role="status"></p>
+              <button id="il-rescan" class="secondary" type="button">Re-check links</button>
+            </div>
+          </details>
+
+          <div class="field-group" data-publishing-types="comparison,landing">
+            <button id="publishing-generate" type="button">Generate Preview</button>
+            <button id="publishing-save-admin" class="btn-secondary" type="button">Save WordPress URL</button>
+            <p id="publishing-form-status" role="status"></p>
+          </div>
+        </section>
+
+        <section class="card form-card field-group" id="hub-link-card" data-publishing-types="comparison,landing">
+          <strong>Hub page Linking Code <small>(the button to add on the hub page)</small></strong>
+          <label>Button classes <small>(empty = plain link)</small> <input id="hub-link-class" type="text" value="button primary-button" autocomplete="off" spellcheck="false"></label>
+          <label>Anchor text <input id="hub-link-anchor" type="text" placeholder="Defaults to the page title" autocomplete="off"></label>
+          <label>Publish URL <small>(relative — taken from the page's real WordPress link, e.g. /chevrolet-research/page-slug/)</small> <input id="hub-link-url" type="text" placeholder="/page-slug/" autocomplete="off"></label>
+          <textarea id="hub-link-code" readonly rows="3" style="width:100%;font-family:monospace;font-size:12px"></textarea>
+          <div style="display:flex;gap:8px">
+            <button id="hub-link-copy-draft" type="button">Draft</button>
+            <button id="hub-link-copy-publish" type="button">Publish</button>
+          </div>
+          <small id="hub-link-note"></small>
+        </section>
+
+        <!-- ── Empty/Preview state (hidden entirely for Blog Publishing) ── -->
+        <div id="hub-preview-workflow" class="field-group">
+          <!-- ── Empty state ── -->
+          <section id="empty" class="card">
+            <p>No hub page generated yet.</p>
+            <small>Select a hub type, enter your brand name, and click Generate Preview.</small>
+          </section>
+
+          <!-- ── Preview ── -->
+          <section id="preview" class="card" hidden>
+            <h2>Page Basics</h2>
+            <dl class="basics">
+              <div><dt>Title</dt><dd id="p-title"></dd></div>
+              <div><dt>Slug</dt><dd id="p-slug"></dd></div>
+              <div><dt>Parent</dt><dd id="p-parent"></dd></div>
+              <div><dt>Template</dt><dd id="p-template"></dd></div>
+              <div><dt>Meta Title</dt><dd id="p-meta-title"></dd></div>
+              <div><dt>Meta Desc</dt><dd id="p-meta-desc"></dd></div>
+            </dl>
+
+            <h2>Content Sections</h2>
+            <p class="hint">Click <strong>Copy</strong> to copy each section, then paste into the corresponding DI Page Composer row.</p>
+            <div id="sections"></div>
+
+            <button id="open-wp" type="button">Open WordPress &amp; Fill Basics</button>
+            <button id="clear" class="btn-secondary" type="button">Clear</button>
+            <p id="fill-status" role="status"></p>
+          </section>
+        </div>
+      </div>
+
+      <!-- ══════════════════ BLOG PUBLISHING (aka "Auto Publishing") — markup unchanged except 5 IDs prefixed blog- (admin-url, save-admin, import-status, empty, clear all also exist in the Hub panel above).
+           Visibility is now driven by the Hub Type dropdown (value="blog") instead of a tab click — see applyFieldVisibility() in hub_popup.js. ══════════════════ -->
+      <div id="panel-blog" hidden>
+        <p class="eyebrow">AUTO PUBLISHING by Akshay</p>
+        <h1>Google Doc → WordPress</h1>
+        <section class="card import-card">
+          <label>Google Doc URL<input id="document-url" type="url" placeholder="https://docs.google.com/document/d/..." autocomplete="off"></label>
+          <label>WordPress admin URL<input id="blog-admin-url" type="url" placeholder="https://example.com/wp/wp-admin" autocomplete="off"></label>
+          <button id="blog-save-admin" class="secondary" type="button">Save WordPress URL</button>
+          <button id="import" type="button">Import &amp; queue blog post</button>
+          <p id="blog-import-status" role="status"></p>
+        </section>
+        <section class="card" id="blog-category-card">
+          <div class="field-group">
+            <strong>Category <small>(read from the site's WordPress)</small></strong>
+            <select id="blog-category"><option value="__auto">Auto — features blog → the features category</option><option value="__none">Don't set a category</option></select>
+            <button id="blog-category-load" class="secondary" type="button">Load categories from WordPress</button>
+            <small id="blog-category-note"></small>
+          </div>
+        </section>
+        <section class="card" id="blog-image-card">
+        <div class="field-group" id="blog-image-box">
+    <label for="blog-image-query">Blog image <small>(1000×400 — added at the start of the post)</small></label>
+    <label for="blog-image-source">Image library</label>
+    <select id="blog-image-source"><option value="dealer">Dealer Inspire Image Library</option><option value="cloudinary">Cloudinary Creative Image Library</option></select>
+    <input id="blog-image-query" type="text" placeholder="2026 BMW i4  (year + make + model)" autocomplete="off">
+    <div id="blog-image-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0"></div>
+    <input id="blog-image-alt" type="text" placeholder="Alt text (defaults to the Alt Text in the Google Doc)" autocomplete="off">
+    <label style="display:flex;gap:6px;align-items:center;font-size:12px"><input id="blog-image-choose" type="checkbox"> Let me choose the image (otherwise a good match is picked at random)</label>
+    <button id="blog-image-fetch" type="button">Find &amp; download blog image</button>
+    <div id="blog-image-choices" hidden style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px"></div>
+    <div id="blog-image-status" class="status"></div>
+    <img id="blog-image-preview" alt="" hidden style="max-width:100%;margin-top:6px;border-radius:6px">
+    <button type="button" id="blog-image-save" hidden style="margin-top:6px">Save image to my computer</button>
+  </div>
+        </section>
+        <section id="blog-empty" class="card">
+          <p>No draft is queued.</p>
+          <small>Paste a Google Doc link above to create a new blog-post draft.</small>
+        </section>
+        <section id="draft" class="card" hidden>
+          <dl>
+            <div><dt>Title</dt><dd id="title"></dd></div>
+            <div><dt>Slug</dt><dd id="slug"></dd></div>
+            <div><dt>Target</dt><dd id="target"></dd></div>
+          </dl>
+          <h2>Imported fields</h2>
+          <dl id="fields"></dl>
+          <details class="blog-button-review" id="blog-button-review">
+            <summary>Button Code / CTA <small id="blog-button-summary">No CTA buttons in this Doc.</small></summary>
+            <textarea id="blog-button-code" rows="3" readonly spellcheck="false" aria-label="Button code imported from the Google Doc"></textarea>
+            <ul id="blog-button-results" class="cta-url-results"></ul>
+          </details>
+          <div id="blog-content-selection" class="content-selection" hidden>
+            <strong>Choose Content HTML</strong>
+            <small>Review the formatted imported Google Doc content and select only the sections to push to WordPress.</small>
+            <div id="blog-content-selection-items"></div>
+          </div>
+          <div id="blog-il-panel" class="il-panel content-selection" hidden>
+            <strong>Internal link suggestions</strong>
+            <small>Fixed phrases (e.g. “new vehicles” → /new-vehicles/) are checked on the live site. Tick the ones you approve; unticked phrases stay plain text.</small>
+            <div id="blog-il-list" class="il-list"></div>
+            <p id="blog-il-status" role="status"></p>
+            <button id="blog-il-rescan" class="secondary" type="button">Re-check links</button>
+          </div>
+          <details>
+            <summary>Blog content HTML</summary>
+            <pre id="content"></pre>
+          </details>
+          <label class="field-group" style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="auto-save-draft">
+            Also save as a WordPress draft after filling
+          </label>
+          <button id="fill" type="button">Open &amp; fill WordPress</button>
+          <button id="blog-clear" class="secondary" type="button">Clear queued draft</button>
+          <p id="status" role="status"></p>
+        </section>
+      </div>
+
+      <!-- Page check: automatic read-only check of the WordPress page right after it was filled -->
+      <details id="page-check" hidden>
+        <summary>&#10003; Page check <small id="page-check-sum"></small></summary>
+        <div id="page-check-body"></div>
+      </details>
+
+      <!-- Time log: seconds for every step of the latest run (Salesforce, Doc import, Image Library, WordPress) -->
+      <details id="time-log">
+        <summary>&#9201; Time log <small id="time-log-sum"></small></summary>
+        <div id="time-log-body">No run yet.</div>
+        <button id="time-log-copy" type="button" class="secondary">Copy time log</button>
+      </details>
+
+    </main>
+
+    <!-- Hub Publisher: original classic scripts, unchanged — they already share
+         scope with each other (generateHub) and don't collide with anything else. -->
+    <script src="link_rules.js"></script>
+    <script src="core/hub-core.js"></script>
+    <script src="pages/service.js"></script>
+    <script src="pages/research.js"></script>
+    <script src="pages/finance.js"></script>
+    <script src="pages/comparison.js"></script>
+    <script src="pages/landing.js"></script>
+    <script src="hub-templates.js"></script>
+    <p class="signature">crafted by <b>Akshay</b></p>
+    <script src="update_banner.js"></script>
+    <script src="bulk_open.js"></script>
+    <script src="clear_all.js"></script>
+    <script src="timelog_popup.js"></script>
+    <script src="pagecheck_popup.js"></script>
+    <script src="hub_popup.js"></script>
+    <script src="hub_link.js"></script>
+    <script src="hub_parent.js"></script>
+    <!-- Auto Publishing: loaded as a module so its top-level `adminUrl` /
+         `importStatus` consts don't collide with Hub Publisher's same-named
+         consts above — modules get their own scope. Internals unchanged. -->
+    <script src="blog_category.js"></script>
+    <script src="blog_category_popup.js"></script>
+    <script type="module" src="blog_popup.js"></script>
+    <script type="module" src="links/il_popup.js"></script>
+    <script type="module" src="salesforce/sf_popup.js"></script>
+    <script type="module" src="vrp_pages.js"></script>
+    <script type="module" src="images/img_popup.js"></script>
+    <script type="module" src="autorun_popup.js"></script>
+  </body>
+</html>

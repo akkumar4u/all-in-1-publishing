@@ -1,0 +1,21 @@
+:root { font-family: 'Segoe UI', Arial, sans-serif; color: #1a2f2b; font-size: 13px; line-height: 1.45; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { width: 300px; background: #f0f4f2; }
+main { padding: 18px; }
+.eyebrow { color: #5e7d77; font-size: 9px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 6px; }
+h1 { font-size: 18px; margin: 0 0 16px; }
+.tool-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #dbe6e1;
+  border-radius: 9px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.tool-btn:hover { border-color: #194746; }
+.tool-name { display: block; font-size: 13px; font-weight: 700; color: #194746; }
+.tool-desc { display: block; font-size: 11px; color: #5e7d77; margin-top: 3px; }
+.hint { font-size: 11px; color: #687a76; margin-top: 4px; }

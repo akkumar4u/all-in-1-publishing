@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hub Publisher</title>
+    <link rel="stylesheet" href="hub_popup.css">
+  </head>
+  <body>
+    <main>
+      <header class="header">
+        <p class="eyebrow">HUB PUBLISHER</p>
+        <h1>All in 1 Publishing Automation Tool</h1>
+      </header>
+
+      <!-- ── Form ── -->
+      <section class="card form-card">
+        <label>
+          Hub Type
+          <select id="hub-type">
+            <option value="service">Service &amp; Parts Information</option>
+            <option value="research">Make Research</option>
+            <option value="finance">Finance &amp; Insurance Information</option>
+            <option value="comparison">Comparison Page</option>
+          </select>
+        </label>
+
+        <div class="field-group" data-hub-types="comparison">
+          <label>
+            Google Doc URL <small>(optional — auto-fills title &amp; meta below)</small>
+            <input id="comparison-doc-url" type="url" placeholder="https://docs.google.com/document/d/..." autocomplete="off">
+          </label>
+          <button id="import-doc" class="btn-secondary" type="button">Import from Google Doc</button>
+          <p id="import-status" role="status"></p>
+        </div>
+
+        <label class="field-group" data-hub-types="service,research,finance">
+          Brand Name <span class="required">*</span>
+          <input id="brand-name" type="text" placeholder="e.g. Acura, CDJR, Toyota" autocomplete="off">
+        </label>
+
+        <label class="field-group" data-hub-types="comparison">
+          Comparison Page Title <span class="required">*</span>
+          <input id="comparison-page-title" type="text" placeholder="e.g. 2021 Toyota Corolla vs. 2021 Toyota Camry" autocomplete="off">
+        </label>
+
+        <label class="field-group" data-hub-types="comparison">
+          Comparison Page Slug <small>(auto-fills from the Google Doc's "Page Slug" field — edit if needed)</small>
+          <input id="comparison-page-slug" type="text" placeholder="e.g. 2026-toyota-highlander-vs-grand-highlander" autocomplete="off">
+        </label>
+
+        <label>
+          WordPress Admin URL <span class="required">*</span>
+          <input id="admin-url" type="url" placeholder="https://example.com/wp/wp-admin" autocomplete="off">
+        </label>
+
+        <details class="optional-fields">
+          <summary>Optional URL overrides</summary>
+          <label class="field-group" data-hub-types="service">
+            Service Specials URL <small>(Service hub banner)</small>
+            <input id="service-specials-url" type="text" placeholder="/service-specials/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="service">
+            Parts Specials URL <small>(Service hub banner)</small>
+            <input id="parts-specials-url" type="text" placeholder="/parts-specials/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="service,research,finance">
+            Research Hub URL <small>(for cross-linking between hubs)</small>
+            <input id="hub-research-url" type="text" placeholder="/[make]-research/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="service,research,finance">
+            Finance Hub URL <small>(for cross-linking between hubs)</small>
+            <input id="hub-finance-url" type="text" placeholder="/finance/car-buying-tips/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="service,research,finance">
+            Service Hub URL <small>(for cross-linking between hubs)</small>
+            <input id="hub-service-url" type="text" placeholder="/service/service-and-parts-tips/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="research">
+            New Vehicles URL <small>(Research hub banner)</small>
+            <input id="research-new-vehicles-url" type="text" placeholder="/new-vehicles/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="research,finance">
+            Contact Us URL <small>(Research &amp; Finance banners)</small>
+            <input id="contact-us-url" type="text" placeholder="/contact-us/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="finance">
+            Finance Page URL <small>(Finance hub banner)</small>
+            <input id="finance-page-url" type="text" placeholder="/finance/" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="comparison">
+            Meta Title <small>(from Google Doc, or type your own)</small>
+            <input id="comparison-meta-title" type="text" placeholder="Paste or import from Google Doc" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="comparison">
+            Meta Description <small>(from Google Doc, or type your own)</small>
+            <input id="comparison-meta-description" type="text" placeholder="Paste or import from Google Doc" autocomplete="off">
+          </label>
+          <label class="field-group" data-hub-types="comparison">
+            CTA/Body Content <small>(paste your HTML-Tidy'd copy — relative links only)</small>
+            <textarea id="comparison-cta-body" rows="4" placeholder="&lt;p&gt;Your tidied body copy…&lt;/p&gt;"></textarea>
+          </label>
+        </details>
+
+        <button id="generate" type="button">Generate Preview</button>
+        <button id="save-admin" class="btn-secondary" type="button">Save WordPress URL</button>
+        <p id="form-status" role="status"></p>
+      </section>
+
+      <!-- ── Empty state ── -->
+      <section id="empty" class="card">
+        <p>No hub page generated yet.</p>
+        <small>Select a hub type, enter your brand name, and click Generate Preview.</small>
+      </section>
+
+      <!-- ── Preview ── -->
+      <section id="preview" class="card" hidden>
+        <h2>Page Basics</h2>
+        <dl class="basics">
+          <div><dt>Title</dt><dd id="p-title"></dd></div>
+          <div><dt>Slug</dt><dd id="p-slug"></dd></div>
+          <div><dt>Parent</dt><dd id="p-parent"></dd></div>
+          <div><dt>Template</dt><dd id="p-template"></dd></div>
+          <div><dt>Meta Title</dt><dd id="p-meta-title"></dd></div>
+          <div><dt>Meta Desc</dt><dd id="p-meta-desc"></dd></div>
+        </dl>
+
+        <h2>Content Sections</h2>
+        <p class="hint">Click <strong>Copy</strong> to copy each section, then paste into the corresponding DI Page Composer row.</p>
+        <div id="sections"></div>
+
+        <button id="open-wp" type="button">Open WordPress &amp; Fill Basics</button>
+        <button id="clear" class="btn-secondary" type="button">Clear</button>
+        <p id="fill-status" role="status"></p>
+      </section>
+    </main>
+    <script src="link_rules.js"></script>
+    <script src="core/hub-core.js"></script>
+    <script src="pages/service.js"></script>
+    <script src="pages/research.js"></script>
+    <script src="pages/finance.js"></script>
+    <script src="pages/comparison.js"></script>
+    <script src="pages/landing.js"></script>
+    <script src="hub-templates.js"></script>
+    <script src="hub_popup.js"></script>
+  </body>
+</html>

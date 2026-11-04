@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publishing Studio — Bulk</title>
+  <link rel="stylesheet" href="bulk.css">
+  <link rel="stylesheet" href="../links/il_popup.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo">PS</span><div><b>Publishing Studio</b><small>Bulk tickets → Sheet → Review → Draft</small></div></div>
+    <div class="top-actions">
+      <span id="conn" class="chip">Checking sheet…</span>
+      <button id="refresh" class="btn ghost" type="button">↻ Refresh</button>
+      <button id="settings-open" class="btn ghost" type="button">⚙ Settings</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="left">
+      <div class="card">
+        <h2>Add tickets</h2>
+        <textarea id="ticket-input" rows="5" placeholder="One ticket number per line (up to 30)&#10;00123456&#10;00123457"></textarea>
+        <div class="row">
+          <button id="fetch" class="btn primary" type="button">Fetch tickets</button>
+          <button id="stop" class="btn" type="button" hidden>Stop after this one</button>
+          <span id="batch-note" class="muted"></span>
+        </div>
+        <ul id="progress" class="progress"></ul>
+        <p class="hint">Needs: Salesforce and Google both logged in in this Chrome. Tickets run one after another; nothing is sent to WordPress here.</p>
+      </div>
+
+      <div class="card grow">
+        <div class="list-head">
+          <h2>Tickets <span id="count" class="muted"></span></h2>
+          <div class="filters">
+            <input id="search" type="search" placeholder="Search ticket, site, title…">
+            <select id="status-filter">
+              <option value="">All statuses</option>
+              <option>Ready for review</option><option>Needs attention</option><option>Approved</option>
+              <option>Drafting</option><option>Draft saved</option><option>Draft failed</option><option>Completed</option><option>Fetched</option><option>Failed</option>
+            </select>
+            <label class="chk show-completed" title="Show closed or done tickets. Published pages hide after five minutes unless you search for them."><input id="show-completed" type="checkbox"> Show closed / done</label>
+          </div>
+        </div>
+        <div class="bulk-actions">
+          <button id="draft-selected" class="btn" type="button" disabled>Draft selected (0)</button>
+          <button id="approve-selected" class="btn ghost" type="button" disabled>Approve selected</button>
+          <label class="chk" title="Every ticket you Approve is filled in WordPress and saved as a DRAFT, one after another. Nothing is published."><input id="auto-draft" type="checkbox"> Auto-draft approved</label>
+          <button id="open-drafts" class="btn ghost" type="button">Open drafts</button>
+          <button id="copy-drafts" class="btn ghost" type="button">Copy draft links</button>
+          <span id="pending" class="muted"></span>
+        </div>
+        <div class="table-wrap">
+          <table id="grid">
+            <thead><tr><th><input id="select-all" type="checkbox" aria-label="Select all"></th><th>Ticket</th><th>Type</th><th>Account</th><th>Subject</th><th>Website</th><th>Parent Page</th><th>Blog Category</th><th>Page title</th><th>Status</th><th>Draft URL</th><th>Hub Code</th><th>Checks</th><th>Published URL</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p id="empty" class="muted pad" hidden>No tickets yet. Add ticket numbers above and click Fetch tickets.</p>
+        </div>
+      </div>
+    </section>
+
+    <aside class="right"><div id="detail" class="card detail"><p class="muted">Click a ticket to review it.</p></div></aside>
+  </main>
+
+  <dialog id="settings">
+    <form method="dialog" class="dlg">
+      <h2>Settings</h2>
+      <label>Apps Script URL <small>(ends in /exec)</small><input id="set-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></label>
+      <label>Your token <small>(from the owner — personal, do not share)</small><input id="set-token" type="password" autocomplete="off"></label>
+      <p id="set-msg" class="muted"></p>
+      <div class="row end">
+        <button id="set-test" class="btn" type="button">Test connection</button>
+        <button id="set-save" class="btn primary" value="save">Save</button>
+        <button class="btn ghost" value="cancel">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="../link_rules.js"></script>
+  <script src="../core/hub-core.js"></script>
+  <script src="../pages/service.js"></script>
+  <script src="../pages/research.js"></script>
+  <script src="../pages/finance.js"></script>
+  <script src="../pages/comparison.js"></script>
+  <script src="../pages/landing.js"></script>
+  <script src="../hub-templates.js"></script>
+  <script type="module" src="bulk.js"></script>
+</body>
+</html>

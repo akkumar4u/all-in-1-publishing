@@ -1,0 +1,352 @@
+/* ── Reset & Base ── */
+:root {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #1a2f2b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 380px;
+  background: #f0f4f2;
+}
+
+main {
+  padding: 16px 18px 20px;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 14px;
+}
+
+.eyebrow {
+  color: #5e7d77;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #12312e;
+  letter-spacing: -0.3px;
+}
+
+h2 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #5e7d77;
+  margin: 16px 0 8px;
+}
+
+h2:first-child {
+  margin-top: 0;
+}
+
+/* ── Cards ── */
+.card {
+  background: #ffffff;
+  border: 1px solid #d6e2dd;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(18, 49, 46, 0.04);
+}
+
+.card p {
+  font-size: 12px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.card small {
+  color: #6b8580;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* ── Form ── */
+.form-card label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #3d5955;
+  margin-bottom: 10px;
+}
+
+.required {
+  color: #c04535;
+}
+
+.form-card input,
+.form-card select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid #c5d5cf;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  color: #1a2f2b;
+  background: #fafcfb;
+  transition: border-color 0.15s;
+}
+
+.form-card input:focus,
+.form-card select:focus {
+  outline: none;
+  border-color: #3a8a7a;
+  box-shadow: 0 0 0 2px rgba(58, 138, 122, 0.12);
+}
+
+.form-card input::placeholder {
+  color: #9eb5af;
+}
+
+/* ── Optional fields ── */
+.optional-fields {
+  margin-bottom: 10px;
+}
+
+.optional-fields summary {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3a8a7a;
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+}
+
+.optional-fields summary:hover {
+  color: #2c6e62;
+}
+
+.optional-fields[open] summary {
+  margin-bottom: 8px;
+}
+
+.optional-fields label {
+  margin-bottom: 8px;
+}
+
+/* ── Buttons ── */
+button {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+#generate,
+#open-wp {
+  background: #194847;
+  color: #ffffff;
+  margin-top: 6px;
+}
+
+#generate:hover:not(:disabled),
+#open-wp:hover:not(:disabled) {
+  background: #1b5856;
+}
+
+.btn-secondary {
+  background: #e4eeea;
+  color: #194847;
+  margin-top: 6px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #d4e4de;
+}
+
+/* ── Status messages ── */
+#form-status,
+#fill-status {
+  font-size: 11px;
+  margin-top: 8px;
+  min-height: 14px;
+}
+
+.success { color: #157a50; }
+.error { color: #b33b32; }
+.is-empty { color: #b33b32 !important; font-weight: 600; }
+.is-empty::after { content: ' (not filled in)'; font-weight: 400; font-style: italic; }
+
+/* ── Basics DL ── */
+.basics {
+  margin: 0;
+}
+
+.basics div {
+  border-bottom: 1px solid #edf2ef;
+  padding: 6px 0;
+}
+
+.basics div:last-child {
+  border-bottom: 0;
+}
+
+dt {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b8580;
+}
+
+dd {
+  margin: 2px 0 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  color: #1a2f2b;
+}
+
+/* ── Hint ── */
+.hint {
+  color: #6b8580;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+/* ── Content sections ── */
+.section-block {
+  border: 1px solid #e2ebe7;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  background: #f5f9f7;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a2f2b;
+  flex: 1;
+}
+
+.section-desc {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: #6b8580;
+  margin-top: 2px;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+  width: auto;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 5px;
+  background: #3a8a7a;
+  color: #fff;
+}
+
+.copy-btn:hover:not(:disabled) {
+  background: #2c6e62;
+}
+
+.copy-btn.copied {
+  background: #157a50;
+}
+
+.section-body {
+  display: none;
+  padding: 10px;
+  border-top: 1px solid #e2ebe7;
+}
+
+.section-block.open .section-body {
+  display: block;
+}
+
+.section-code {
+  background: #f3f7f5;
+  border-radius: 5px;
+  padding: 8px;
+  font: 10px/1.5 'Cascadia Code', 'Consolas', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 160px;
+  overflow-y: auto;
+  color: #2c4842;
+}
+
+/* ── Row config notes ── */
+.config-notes {
+  margin-top: 8px;
+  padding: 7px 9px;
+  background: #faf8f0;
+  border: 1px solid #e8e2cc;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #5a5238;
+}
+
+.config-notes strong {
+  color: #3d3820;
+}
+
+.config-notes ul {
+  margin: 3px 0 0 14px;
+  padding: 0;
+}
+
+.config-notes li {
+  margin-bottom: 2px;
+}
+
+/* ── Field visibility toggling (Hub Type dependent fields) ── */
+.field-group[hidden] {
+  display: none !important;
+}
+
+#import-doc {
+  margin-top: 8px;
+}
+
+#comparison-cta-body {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid #c5d5cf;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  color: #1a2f2b;
+  background: #fafcfb;
+  resize: vertical;
+}

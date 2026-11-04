@@ -1,0 +1,28 @@
+/* Salesforce card — styles only apply inside #sf-card */
+#sf-card .sf-row { display: flex; gap: 8px; align-items: flex-end; }
+#sf-card .sf-row label { flex: 1; margin-bottom: 0; }
+#sf-card .sf-row button { white-space: nowrap; }
+#sf-card .sf-check { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-weight: 600; }
+#sf-card .sf-check input { width: auto; margin: 0; display: inline-block; }
+#sf-card #sf-status { margin: 8px 0 0; min-height: 16px; }
+#sf-card #sf-result { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e3ece8; }
+#sf-card #sf-result dl { margin: 0; }
+#sf-card #sf-result dt { font-size: 11px; font-weight: 700; color: #3d5955; margin-top: 6px; }
+#sf-card #sf-result dd { margin: 2px 0 0; font-size: 12px; word-break: break-all; }
+#sf-card #sf-fields { margin-top: 10px; }
+#sf-card #sf-fields select, #sf-card #sf-fields input { width: 100%; box-sizing: border-box; }
+#sf-card #sf-doc-custom { margin: 4px 0 8px; }
+#sf-card #sf-log { margin-top: 8px; font-size: 11px; color: #6b8580; }
+#sf-card #sf-log pre { white-space: pre-wrap; margin-top: 4px; max-height: 120px; overflow: auto; }
+#sf-card #sf-task { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e3ece8; }
+#sf-card #sf-task select { width: 100%; }
+#sf-card #sf-task-note { margin: 6px 0; font-size: 11px; color: #6b8580; }
+#sf-card #sf-apply { margin-top: 4px; }
+
+/* The task chosen from the ticket decides which form shows — no manual tab switching. */
+#panel-hub .publisher-tabs { display: none; }
+body:not(.sf-applied) #hub-workflow,
+body:not(.sf-applied) #publishing-workflow,
+body:not(.sf-applied) #hub-preview-workflow,
+body:not(.sf-applied) #panel-blog { display: none !important; }
+#sf-card #sf-manual { margin-top: 10px; font-size: 11px; background: none; border: 0; color: #3d5955; text-decoration: underline; cursor: pointer; padding: 0; }

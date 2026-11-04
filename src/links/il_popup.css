@@ -1,0 +1,55 @@
+/* Internal links panel (Landing / Comparison = #il-panel, Blog = #blog-il-panel).
+   The popup has global rules for input/button/small/p (width:100%, big padding...), so the panel sets its own
+   sizes explicitly (!important) to stay readable. */
+.il-panel { margin-top: 12px; padding: 10px; border: 1px solid #c5d5cf; border-radius: 8px; background: #fafcfb; }
+.il-panel > strong { display: block; font-size: 12px; }
+.il-panel > small { display: block; margin: 3px 0 8px; font-size: 11px; line-height: 1.4; color: #6b8580; }
+.il-panel .il-list { display: block; }
+.il-panel .il-row { display: grid !important; grid-template-columns: 18px minmax(0, 1fr); column-gap: 8px; align-items: start; margin: 0 0 8px; padding: 8px; border: 1px solid #dbe6e1; border-radius: 6px; background: #fff; font-size: 11px; box-sizing: border-box; }
+.il-panel .il-row > input[type=checkbox] { width: 16px !important; height: 16px !important; min-width: 0 !important; margin: 1px 0 0 !important; padding: 0 !important; flex: none; }
+.il-panel .il-body { min-width: 0; display: block; }
+.il-panel .il-top { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin-bottom: 5px; }
+.il-panel .il-top strong { font-size: 12px; overflow-wrap: anywhere; }
+.il-panel .il-top small { display: inline; margin: 0; font-size: 10px; color: #6b8580; }
+.il-panel .il-context { margin: 0 0 6px; padding: 4px 7px; border-left: 3px solid #b7cbc4; background: #f2f7f5; color: #2d403b; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+.il-panel .il-context:empty { display: none; }
+.il-panel .il-context b { background: #fff3a8; padding: 0 2px; border-radius: 2px; }
+.il-panel .il-body input[type=text] { display: block; width: 100% !important; box-sizing: border-box; margin: 0 !important; padding: 5px 7px !important; font-size: 11px !important; }
+.il-panel .il-note { display: block; margin: 4px 0 0; font-size: 10px; line-height: 1.35; color: #6b8580; overflow-wrap: anywhere; }
+.il-panel .il-note:empty { display: none; }
+.il-badge { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.il-ok { background: #dff3e6; color: #17653a; }
+.il-check { background: #fff1cf; color: #805b00; }
+.il-miss { background: #fbe0e0; color: #9b1c1c; }
+.il-pend { background: #e8eef0; color: #4a5a60; }
+.il-panel p[role=status] { margin: 6px 0 !important; font-size: 11px !important; line-height: 1.4; }
+.il-panel p.success { color: #17653a; }
+.il-panel p.error { color: #9b1c1c; }
+.il-panel button { width: auto !important; display: inline-block !important; padding: 5px 12px !important; font-size: 11px !important; }
+.il-panel .il-more { margin: 4px 8px 4px 0 !important; }
+.il-panel button[hidden] { display: none !important; }
+
+.il-panel .il-sitemap { display: flex; gap: 6px; margin: 0 0 8px; }
+.il-panel .il-sitemap input { flex: 1; min-width: 0; width: auto !important; margin: 0 !important; padding: 5px 7px !important; font-size: 11px !important; box-sizing: border-box; }
+.il-panel .il-pages { margin: 6px 0; font-size: 11px; }
+.il-panel .il-pages summary { cursor: pointer; color: #4a5a60; }
+.il-panel .il-pages input { display: block; width: 100% !important; box-sizing: border-box; margin: 6px 0 !important; padding: 4px 7px !important; font-size: 11px !important; }
+.il-panel .il-pages-list { max-height: 160px; overflow: auto; border: 1px solid #dbe6e1; border-radius: 6px; background: #fff; padding: 4px 6px; }
+.il-panel .il-pages-list div { padding: 1px 0; overflow-wrap: anywhere; color: #2d403b; }
+
+.il-panel [hidden] { display: none !important; }
+
+.il-panel .il-w { cursor: pointer; border-radius: 3px; padding: 0 1px; }
+.il-panel .il-w:hover { background: #dbeee6; }
+.il-panel .il-w-on { background: #fff3a8; font-weight: 700; }
+.il-panel .il-w-on:hover { background: #ffe97a; }
+.il-panel .il-hint { display: block; margin: 0 0 5px; font-size: 10px; color: #6b8580; }
+.il-panel .il-hint:empty { display: none; }
+.il-panel .il-context { user-select: none; }
+.il-panel .il-urlwrap { position: relative; }
+.il-panel .il-suggest { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; max-height: 190px; overflow: auto; margin-top: 2px; border: 1px solid #b7cbc4; border-radius: 6px; background: #fff; box-shadow: 0 6px 16px rgba(20, 50, 40, .18); }
+.il-panel .il-suggest div { display: flex; flex-direction: column; padding: 5px 8px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #eef3f1; }
+.il-panel .il-suggest div:last-child { border-bottom: 0; }
+.il-panel .il-suggest div:hover, .il-panel .il-suggest div.on { background: #e8f4ee; }
+.il-panel .il-suggest b { color: #17302a; overflow-wrap: anywhere; }
+.il-panel .il-suggest span { color: #6b8580; overflow-wrap: anywhere; }

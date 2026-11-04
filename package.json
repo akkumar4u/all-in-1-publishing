@@ -1,0 +1,12 @@
+{
+  "name": "all-in-1-publishing-build",
+  "private": true,
+  "description": "Build tooling for the All in 1 Publishing Chrome extension (the extension itself is in src/).",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:plain": "node build.mjs --no-minify"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.2"
+  }
+}

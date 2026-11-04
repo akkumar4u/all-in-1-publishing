@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!--
+      Shared offscreen document for both tools (Chrome allows only one
+      offscreen document per extension at a time, and both original
+      background scripts already request the same 'parser.html' URL).
+      Each parser is loaded as a separate ES module so their same-named
+      top-level consts/functions (text, fieldValue, etc.) don't collide —
+      module scripts get their own scope. Neither file's own code is
+      changed; only how they're loaded here.
+    -->
+    <script src="link_rules.js"></script>
+    <script type="module" src="hub_parser.js"></script>
+    <script type="module" src="blog_parser.js"></script>
+  </head>
+  <body></body>
+</html>

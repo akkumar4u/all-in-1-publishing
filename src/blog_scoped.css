@@ -1,0 +1,36 @@
+/* :root / body / main base rules removed here — hub_scoped.css already
+   supplies the shared page base (width, reset, font); keeping both would
+   have the last stylesheet loaded silently win and resize the whole popup. */
+#panel-blog .eyebrow { color: #738682; font-size: 10px; font-weight: 700; letter-spacing: 1px; margin: 0 0 5px; }
+#panel-blog h1 { font-size: 19px; margin: 0 0 14px; }
+#panel-blog h2 { font-size: 12px; margin: 17px 0 6px; }
+#panel-blog .card { background: #fff; border: 1px solid #dbe6e1; border-radius: 9px; padding: 14px; }
+#panel-blog .import-card { margin-bottom: 12px; }
+#panel-blog .import-card label { color: #536966; display: block; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+#panel-blog .import-card input { border: 1px solid #cfdcd7; border-radius: 5px; box-sizing: border-box; display: block; font: 12px Arial, sans-serif; margin-top: 5px; padding: 8px; width: 100%; }
+#panel-blog .import-card button { margin-top: 0; }
+#panel-blog .card p { margin: 0 0 7px; font-size: 13px; line-height: 1.4; }
+#panel-blog small { color: #687a76; font-size: 11px; line-height: 1.4; }
+#panel-blog dl { margin: 0; }
+#panel-blog dl div { border-bottom: 1px solid #edf1ef; padding: 8px 0; }
+#panel-blog dl div:last-child { border-bottom: 0; }
+#panel-blog dt { color: #748480; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+#panel-blog dd { margin: 3px 0 0; font-size: 12px; overflow-wrap: anywhere; }
+#panel-blog button { background: #194746; border: 0; border-radius: 6px; color: #fff; cursor: pointer; font-weight: 700; margin-top: 14px; padding: 10px; width: 100%; }
+#panel-blog button:disabled { opacity: .6; cursor: wait; }
+#panel-blog button.secondary { background: #e7efec; color: #194746; margin-top: 8px; }
+#panel-blog #status { color: #536966; font-size: 11px; margin-top: 10px; }
+#panel-blog #status.success { color: #177252; }
+#panel-blog #status.error { color: #b33b32; }
+#panel-blog details { margin-top: 14px; }
+#panel-blog summary { cursor: pointer; font-size: 11px; font-weight: 700; }
+#panel-blog pre { background: #f5f8f6; border-radius: 5px; font: 10px/1.4 monospace; max-height: 130px; overflow: auto; padding: 8px; white-space: pre-wrap; word-break: break-word; }
+#panel-blog .content-selection { margin-top: 12px; padding: 9px; border: 1px solid #c5d5cf; border-radius: 6px; background: #fafcfb; }
+#panel-blog .content-selection small { display: block; margin: 3px 0 7px; }
+#panel-blog .content-selection-item { display: flex; gap: 7px; align-items: flex-start; margin: 5px 0; font-size: 11px; line-height: 1.35; cursor: pointer; }
+#panel-blog .content-selection-item input { width: auto; margin: 2px 0 0; }
+#panel-blog .content-selection-preview { flex: 1; max-height: 115px; overflow: auto; padding: 6px 8px; border: 1px solid #e0ebe6; border-radius: 4px; background: #fff; }
+#panel-blog .content-selection-preview > :first-child { margin-top: 0; }
+#panel-blog .content-selection-preview > :last-child { margin-bottom: 0; }
+#panel-blog .content-selection-preview p,
+#panel-blog .content-selection-preview li { margin: 0 0 5px; }

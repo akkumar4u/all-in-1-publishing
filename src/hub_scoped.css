@@ -1,0 +1,351 @@
+/* ── Reset & Base ── */:root {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #1a2f2b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  width: 380px;
+  background: #f0f4f2;
+}
+main {
+  padding: 16px 18px 20px;
+}
+#panel-hub /* ── Header ── */
+.header {
+  margin-bottom: 14px;
+}
+#panel-hub .eyebrow {
+  color: #5e7d77;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+#panel-hub h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #12312e;
+  letter-spacing: -0.3px;
+}
+#panel-hub h2 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #5e7d77;
+  margin: 16px 0 8px;
+}
+#panel-hub h2:first-child {
+  margin-top: 0;
+}
+#panel-hub /* ── Cards ── */
+.card {
+  background: #ffffff;
+  border: 1px solid #d6e2dd;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(18, 49, 46, 0.04);
+}
+#panel-hub .card p {
+  font-size: 12px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+#panel-hub .card small {
+  color: #6b8580;
+  font-size: 11px;
+  line-height: 1.4;
+}
+#panel-hub /* ── Form ── */
+.form-card label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #3d5955;
+  margin-bottom: 10px;
+}
+#panel-hub .required {
+  color: #c04535;
+}
+#panel-hub .form-card input, #panel-hub .form-card select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid #c5d5cf;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  color: #1a2f2b;
+  background: #fafcfb;
+  transition: border-color 0.15s;
+}
+#panel-hub .form-card input:focus, #panel-hub .form-card select:focus {
+  outline: none;
+  border-color: #3a8a7a;
+  box-shadow: 0 0 0 2px rgba(58, 138, 122, 0.12);
+}
+#panel-hub .form-card input::placeholder {
+  color: #9eb5af;
+}
+#panel-hub /* ── Optional fields ── */
+.optional-fields {
+  margin-bottom: 10px;
+}
+#panel-hub .optional-fields summary {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3a8a7a;
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+}
+#panel-hub .optional-fields summary:hover {
+  color: #2c6e62;
+}
+#panel-hub .optional-fields[open] summary {
+  margin-bottom: 8px;
+}
+#panel-hub .optional-fields label {
+  margin-bottom: 8px;
+}
+#panel-hub /* ── Buttons ── */
+button {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+#panel-hub button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+#panel-hub #generate, #panel-hub #open-wp {
+  background: #194847;
+  color: #ffffff;
+  margin-top: 6px;
+}
+#panel-hub #generate:hover:not(:disabled), #panel-hub #open-wp:hover:not(:disabled) {
+  background: #1b5856;
+}
+#panel-hub .btn-secondary {
+  background: #e4eeea;
+  color: #194847;
+  margin-top: 6px;
+}
+#panel-hub .btn-secondary:hover:not(:disabled) {
+  background: #d4e4de;
+}
+#panel-hub /* ── Status messages ── */
+#form-status, #panel-hub #fill-status {
+  font-size: 11px;
+  margin-top: 8px;
+  min-height: 14px;
+}
+#panel-hub .success { color: #157a50; }
+#panel-hub .error { color: #b33b32; }
+#panel-hub /* ── Basics DL ── */
+.basics {
+  margin: 0;
+}
+#panel-hub .basics div {
+  border-bottom: 1px solid #edf2ef;
+  padding: 6px 0;
+}
+#panel-hub .basics div:last-child {
+  border-bottom: 0;
+}
+#panel-hub dt {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b8580;
+}
+#panel-hub dd {
+  margin: 2px 0 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  color: #1a2f2b;
+}
+#panel-hub /* ── Hint ── */
+.hint {
+  color: #6b8580;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+#panel-hub /* ── Content sections ── */
+.section-block {
+  border: 1px solid #e2ebe7;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+#panel-hub .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  background: #f5f9f7;
+  cursor: pointer;
+  user-select: none;
+}
+#panel-hub .section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a2f2b;
+  flex: 1;
+}
+#panel-hub .section-desc {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: #6b8580;
+  margin-top: 2px;
+}
+#panel-hub .copy-btn {
+  flex-shrink: 0;
+  width: auto;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 5px;
+  background: #3a8a7a;
+  color: #fff;
+}
+#panel-hub .copy-btn:hover:not(:disabled) {
+  background: #2c6e62;
+}
+#panel-hub .copy-btn.copied {
+  background: #157a50;
+}
+#panel-hub .section-body {
+  display: none;
+  padding: 10px;
+  border-top: 1px solid #e2ebe7;
+}
+#panel-hub .section-block.open .section-body {
+  display: block;
+}
+#panel-hub .section-code {
+  background: #f3f7f5;
+  border-radius: 5px;
+  padding: 8px;
+  font: 10px/1.5 'Cascadia Code', 'Consolas', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 160px;
+  overflow-y: auto;
+  color: #2c4842;
+}
+#panel-hub /* ── Row config notes ── */
+.config-notes {
+  margin-top: 8px;
+  padding: 7px 9px;
+  background: #faf8f0;
+  border: 1px solid #e8e2cc;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #5a5238;
+}
+#panel-hub .config-notes strong {
+  color: #3d3820;
+}
+#panel-hub .config-notes ul {
+  margin: 3px 0 0 14px;
+  padding: 0;
+}
+#panel-hub .config-notes li {
+  margin-bottom: 2px;
+}
+#panel-hub /* ── Field visibility toggling (Hub Type dependent fields) ── */
+.field-group[hidden] {
+  display: none !important;
+}
+#panel-hub #import-doc {
+  margin-top: 8px;
+}
+#panel-hub #comparison-cta-body {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid #c5d5cf;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  color: #1a2f2b;
+  background: #fafcfb;
+  resize: vertical;
+}
+#panel-hub .publisher-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+#panel-hub .publisher-tab {
+  flex: 1;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #9dbab0;
+  border-radius: 6px;
+  background: #f2f7f5;
+  color: #25473e;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+#panel-hub .publisher-tab.is-active {
+  background: #285d4f;
+  border-color: #285d4f;
+  color: #fff;
+}
+#panel-hub #content-selection {
+  margin-top: 10px;
+  padding: 9px;
+  border: 1px solid #c5d5cf;
+  border-radius: 6px;
+  background: #fafcfb;
+}
+#panel-hub #content-selection > small {
+  display: block;
+  margin: 3px 0 7px;
+}
+#panel-hub .content-selection-item {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  margin: 5px 0;
+  font-size: 11px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+#panel-hub .content-selection-item input {
+  width: auto;
+  margin: 2px 0 0;
+}
+#panel-hub .content-selection-preview {
+  flex: 1;
+  max-height: 115px;
+  overflow: auto;
+  padding: 6px 8px;
+  border: 1px solid #e0ebe6;
+  border-radius: 4px;
+  background: #fff;
+}
+#panel-hub .content-selection-preview > :first-child { margin-top: 0; }
+#panel-hub .content-selection-preview > :last-child { margin-bottom: 0; }
+#panel-hub .content-selection-preview p,
+#panel-hub .content-selection-preview li { margin: 0 0 5px; }

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Auto Publishing by Akshay</title>
+    <link rel="stylesheet" href="blog_popup.css">
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">AUTO PUBLISHING by Akshay</p>
+      <h1>Google Doc → WordPress</h1>
+      <section class="card import-card">
+        <label>Google Doc URL<input id="document-url" type="url" placeholder="https://docs.google.com/document/d/..." autocomplete="off"></label>
+        <label>WordPress admin URL<input id="admin-url" type="url" placeholder="https://example.com/wp/wp-admin" autocomplete="off"></label>
+        <button id="save-admin" class="secondary" type="button">Save WordPress URL</button>
+        <button id="import" type="button">Import &amp; queue blog post</button>
+        <p id="import-status" role="status"></p>
+      </section>
+        <section class="card" id="blog-image-card">
+        <div class="field-group" id="blog-image-box">
+    <label for="blog-image-query">Blog image <small>(Image Library, 1000×400 — added at the start of the post)</small></label>
+    <input id="blog-image-query" type="text" placeholder="2026 BMW i4  (year + make + model)" autocomplete="off">
+    <div id="blog-image-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0"></div>
+    <input id="blog-image-alt" type="text" placeholder="Alt text (defaults to the Alt Text in the Google Doc)" autocomplete="off">
+    <label style="display:flex;gap:6px;align-items:center;font-size:12px"><input id="blog-image-choose" type="checkbox"> Let me choose the image (otherwise a good match is picked at random)</label>
+    <button id="blog-image-fetch" type="button">Find &amp; download blog image</button>
+    <div id="blog-image-choices" hidden style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px"></div>
+    <div id="blog-image-status" class="status"></div>
+    <img id="blog-image-preview" alt="" hidden style="max-width:100%;margin-top:6px;border-radius:6px">
+    <button type="button" id="blog-image-save" hidden style="margin-top:6px">Save image to my computer</button>
+  </div>
+        </section>
+      <section id="empty" class="card">
+        <p>No draft is queued.</p>
+        <small>Paste a Google Doc link above to create a new blog-post draft.</small>
+      </section>
+      <section id="draft" class="card" hidden>
+        <dl>
+          <div><dt>Title</dt><dd id="title"></dd></div>
+          <div><dt>Slug</dt><dd id="slug"></dd></div>
+          <div><dt>Target</dt><dd id="target"></dd></div>
+        </dl>
+        <h2>Imported fields</h2>
+        <dl id="fields"></dl>
+        <details>
+          <summary>Blog content HTML</summary>
+          <pre id="content"></pre>
+        </details>
+        <button id="fill" type="button">Open &amp; fill WordPress</button>
+        <button id="clear" class="secondary" type="button">Clear queued draft</button>
+        <p id="status" role="status"></p>
+      </section>
+    </main>
+    <script src="blog_popup.js"></script>
+    <script type="module" src="images/img_popup.js"></script>
+  </body>
+</html>

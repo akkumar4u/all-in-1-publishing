@@ -1,0 +1,27 @@
+:root { font-family: Arial, sans-serif; color: #183f3c; }
+body { margin: 0; width: 330px; background: #f6f8f6; }
+main { padding: 18px; }
+.eyebrow { color: #738682; font-size: 10px; font-weight: 700; letter-spacing: 1px; margin: 0 0 5px; }
+h1 { font-size: 19px; margin: 0 0 14px; }
+h2 { font-size: 12px; margin: 17px 0 6px; }
+.card { background: #fff; border: 1px solid #dbe6e1; border-radius: 9px; padding: 14px; }
+.import-card { margin-bottom: 12px; }
+.import-card label { color: #536966; display: block; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+.import-card input { border: 1px solid #cfdcd7; border-radius: 5px; box-sizing: border-box; display: block; font: 12px Arial, sans-serif; margin-top: 5px; padding: 8px; width: 100%; }
+.import-card button { margin-top: 0; }
+.card p { margin: 0 0 7px; font-size: 13px; line-height: 1.4; }
+small { color: #687a76; font-size: 11px; line-height: 1.4; }
+dl { margin: 0; }
+dl div { border-bottom: 1px solid #edf1ef; padding: 8px 0; }
+dl div:last-child { border-bottom: 0; }
+dt { color: #748480; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+dd { margin: 3px 0 0; font-size: 12px; overflow-wrap: anywhere; }
+button { background: #194746; border: 0; border-radius: 6px; color: #fff; cursor: pointer; font-weight: 700; margin-top: 14px; padding: 10px; width: 100%; }
+button:disabled { opacity: .6; cursor: wait; }
+button.secondary { background: #e7efec; color: #194746; margin-top: 8px; }
+#status { color: #536966; font-size: 11px; margin-top: 10px; }
+#status.success { color: #177252; }
+#status.error { color: #b33b32; }
+details { margin-top: 14px; }
+summary { cursor: pointer; font-size: 11px; font-weight: 700; }
+pre { background: #f5f8f6; border-radius: 5px; font: 10px/1.4 monospace; max-height: 130px; overflow: auto; padding: 8px; white-space: pre-wrap; word-break: break-word; }

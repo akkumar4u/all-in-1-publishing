@@ -1,0 +1,46 @@
+name: Build and publish
+
+# Every push to main that touches the extension: build it, keep a copy as a workflow artifact, and (once the secrets
+# below are set) put it into the shared Drive / Dropbox folder. Teammates' extensions pick it up by themselves.
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'build.mjs', 'package.json', '.github/workflows/build.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: publish
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      RCLONE_CONF: ${{ secrets.RCLONE_CONF }}     # base64 of rclone.conf (see docs/SETUP_OWNER.md)
+      RCLONE_DEST: ${{ vars.RCLONE_DEST }}        # e.g.  team:All-in-1-Publishing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: node build.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: all-in-1-publishing-dist
+          path: dist
+          retention-days: 30
+
+      - name: Install rclone
+        if: env.RCLONE_CONF != '' && env.RCLONE_DEST != ''
+        run: curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Upload to the shared folder (build.json goes last)
+        if: env.RCLONE_CONF != '' && env.RCLONE_DEST != ''
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONF" | base64 -d > ~/.config/rclone/rclone.conf
+          # everything except build.json first (this also removes files that no longer exist) ...
+          rclone sync dist "$RCLONE_DEST" --exclude "build.json" --checksum
+          # ... then build.json, so a teammate's extension never sees the new version before its files are there
+          rclone copyto dist/build.json "$RCLONE_DEST/build.json"
