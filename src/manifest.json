@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Content Studio",
   "description": "Hub Publisher (DI Page Composer hub pages) + Auto Publishing (Google Doc → WordPress blog post), combined into one extension.",
-  "version": "1.9.50",
+  "version": "1.9.51",
   "permissions": [
     "alarms",
     "storage",

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.51 (Horizon) — Temporarily hide the Time Log panel
+- Comment out the Time Log panel markup while retaining its implementation and saved timing data.
+
 ## 1.9.50 (Horizon) — Simplify dashboard header actions
 - Replace filled and outlined action buttons with clean, flat text controls and small monochrome icons.
 
