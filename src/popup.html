@@ -45,12 +45,15 @@
             <button id="sf-run" class="btn-secondary" type="button">Find</button>
           </div>
           <label class="sf-check"><input id="sf-auto-import" type="checkbox" checked> Run the import automatically</label>
+          <!-- Temporarily disabled, not removed: full automatic ticket run. -->
+          <!--
           <label class="sf-check"><input id="auto-run" type="checkbox" checked> Run everything automatically <small>(import &rarr; image &rarr; preview &rarr; open WordPress &rarr; fill + check)</small></label>
           <div id="auto-run-box" hidden>
             <div id="auto-run-steps"></div>
             <p id="auto-run-note" role="status"></p>
             <button id="auto-run-stop" type="button" class="secondary">Stop</button>
           </div>
+          -->
           <p id="sf-status" role="status"></p>
           <div id="sf-result" hidden>
             <dl id="sf-summary"></dl>
@@ -490,6 +493,7 @@
     <script type="module" src="salesforce/sf_popup.js"></script>
     <script type="module" src="vrp_pages.js"></script>
     <script type="module" src="images/img_popup.js"></script>
-    <script type="module" src="autorun_popup.js"></script>
+    <!-- Temporarily paused along with the auto-run controls above. Restore both together. -->
+    <!-- <script type="module" src="autorun_popup.js"></script> -->
   </body>
 </html>

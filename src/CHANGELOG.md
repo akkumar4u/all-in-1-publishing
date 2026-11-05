@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.52 (Horizon) — Temporarily pause full auto-run
+- Comment out the Run everything automatically controls and its module entry point; retain the UI and implementation for later restoration.
+
 ## 1.9.51 (Horizon) — Temporarily hide the Time Log panel
 - Comment out the Time Log panel markup while retaining its implementation and saved timing data.
 
