@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.48 (Horizon) — Give top actions a deliberate hierarchy
+- Make Bulk dashboard the monochrome primary action and Clear all the quiet secondary action, with matched sizing and restrained interaction states.
+
 ## 1.9.47 (Horizon) — Polish the top action buttons
 - Refine Bulk dashboard and Clear all with monochrome icons, spacing, and hover/focus states.
 
