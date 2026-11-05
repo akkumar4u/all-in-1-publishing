@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.50 (Horizon) — Simplify dashboard header actions
+- Replace filled and outlined action buttons with clean, flat text controls and small monochrome icons.
+
 ## 1.9.49 (Horizon) — Align dashboard header actions
 - Place Bulk dashboard and Clear all on opposite ends of the dashboard header row, aligned with the content cards.
 
