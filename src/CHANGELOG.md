@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.45 (Horizon) — Discreet extension name and clearer controls
+- Rename the extension to Content Studio.
+- Add a monochrome Bulk dashboard marker and refine the Clear all button.
+
 ## 1.9.44 (Horizon) — Compact the blank header
 - Remove the empty header placeholder and reduce the header to a slim row around Clear all.
 
