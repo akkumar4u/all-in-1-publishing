@@ -17,9 +17,15 @@
         <button id="update-apply" type="button" style="background:#fff;color:#0b5a4a;border:0;border-radius:6px;padding:5px 10px;font-weight:700;cursor:pointer">Update now</button>
       </div>
     </div>
-    <div style="padding:6px 12px 0;display:flex;justify-content:flex-end;gap:8px;align-items:center">
-      <button id="open-bulk" type="button" style="font:600 12px system-ui,sans-serif;border:1px solid #000;color:#000;background:#fff;border-radius:8px;padding:5px 10px;cursor:pointer">▦ Bulk dashboard ↗</button>
-      <button id="clear-all" type="button" title="Clear everything and start blank">&#8635; Clear all</button>
+    <div class="top-actions">
+      <button id="open-bulk" class="top-action bulk-action" type="button">
+        <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="12" y="3" width="5" height="5" rx="1"/><rect x="3" y="12" width="5" height="5" rx="1"/><rect x="12" y="12" width="5" height="5" rx="1"/></svg></span>
+        <span>Bulk dashboard</span><span class="action-arrow" aria-hidden="true">↗</span>
+      </button>
+      <button id="clear-all" class="top-action clear-action" type="button" title="Clear everything and start blank">
+        <svg class="clear-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2m2 0-.7 10H6.7L6 6m3 3v4m2-4v4"/></svg>
+        <span>Clear all</span>
+      </button>
     </div>
     <main>
       <!-- ══════════════════ HUB PUBLISHER — markup unchanged from the original extension ══════════════════ -->

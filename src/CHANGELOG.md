@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.47 (Horizon) — Polish the top action buttons
+- Refine Bulk dashboard and Clear all with monochrome icons, spacing, and hover/focus states.
+
 ## 1.9.46 (Horizon) — Remove oversized header border
 - Remove the empty bordered header and place Bulk dashboard and Clear all together in a compact controls row.
 
