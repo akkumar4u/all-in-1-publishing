@@ -24,7 +24,7 @@ body { background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%); co
 main { padding: 0 16px 14px; }
 
 /* Primary and secondary monochrome actions above the main panel. */
-.top-actions { padding: 9px 12px 3px; display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+.top-actions { padding: 9px 16px 10px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .top-action {
   height: 38px; box-sizing: border-box; display: inline-flex !important; flex: none; align-items: center; justify-content: center; gap: 8px;
   margin: 0 !important; padding: 0 13px !important; border: 1px solid #111 !important; border-radius: 8px !important;

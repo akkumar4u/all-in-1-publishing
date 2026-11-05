@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.49 (Horizon) — Align dashboard header actions
+- Place Bulk dashboard and Clear all on opposite ends of the dashboard header row, aligned with the content cards.
+
 ## 1.9.48 (Horizon) — Give top actions a deliberate hierarchy
 - Make Bulk dashboard the monochrome primary action and Clear all the quiet secondary action, with matched sizing and restrained interaction states.
 
