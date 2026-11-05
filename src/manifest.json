@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "All in 1 Publishing Automation Tool",
   "description": "Hub Publisher (DI Page Composer hub pages) + Auto Publishing (Google Doc → WordPress blog post), combined into one extension.",
-  "version": "1.9.43",
+  "version": "1.9.44",
   "permissions": [
     "alarms",
     "storage",

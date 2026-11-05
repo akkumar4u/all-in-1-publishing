@@ -25,10 +25,10 @@ main { padding: 0 16px 14px; }
 
 /* ---------- Hero header ---------- */
 #panel-hub .hero {
-  margin: 0 -16px 16px;
-  padding: 18px 18px 18px;
+  margin: 0 -16px 12px;
+  padding: 6px 12px;
   background: #fff;
-  border-radius: 0 0 20px 20px;
+  border-radius: 0;
   border: 1px solid #000;
   box-shadow: none;
   position: relative;
@@ -36,7 +36,7 @@ main { padding: 0 16px 14px; }
 #panel-hub .hero::after {                       /* thin gold hairline at the bottom edge */
   content: none;
 }
-#panel-hub .hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+#panel-hub .hero-row { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 #panel-hub .hero .eyebrow {
   color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: 2.4px; margin: 0 0 6px;
 }
