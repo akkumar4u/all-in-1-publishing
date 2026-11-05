@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.43 (Horizon) — Remove visible brand header text
+- Remove the CARS.COM label, automation tool heading, and feature subtitle from the extension header.
+- Make only the header and its Clear all button black and white; leave the rest of the UI unchanged.
+
 ## 1.9.42 (Horizon) — Preview and apply redirected dealer websites
 - Automatically resolve redirects for the Salesforce Website field and highlight the final destination.
 - Add a Use final URL action that updates the website and derived WordPress admin URL before applying the ticket.
