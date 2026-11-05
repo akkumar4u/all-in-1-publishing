@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.46 (Horizon) — Remove oversized header border
+- Remove the empty bordered header and place Bulk dashboard and Clear all together in a compact controls row.
+
 ## 1.9.45 (Horizon) — Discreet extension name and clearer controls
 - Rename the extension to Content Studio.
 - Add a monochrome Bulk dashboard marker and refine the Clear all button.

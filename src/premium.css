@@ -23,28 +23,7 @@ html { -webkit-font-smoothing: antialiased; }
 body { background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%); color: var(--ink); }
 main { padding: 0 16px 14px; }
 
-/* ---------- Hero header ---------- */
-#panel-hub .hero {
-  margin: 0 -16px 12px;
-  padding: 6px 12px;
-  background: #fff;
-  border-radius: 0;
-  border: 1px solid #000;
-  box-shadow: none;
-  position: relative;
-}
-#panel-hub .hero::after {                       /* thin gold hairline at the bottom edge */
-  content: none;
-}
-#panel-hub .hero-row { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-#panel-hub .hero .eyebrow {
-  color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: 2.4px; margin: 0 0 6px;
-}
-#panel-hub .hero h1 {
-  color: #fff; font-size: 19px; font-weight: 700; letter-spacing: -.2px; line-height: 1.25; margin: 0;
-}
-#panel-hub .hero-sub { color: rgba(255, 255, 255, .62); font-size: 11px; margin-top: 6px; letter-spacing: .2px; }
-/* the Clear button: small ghost pill, NEVER full width */
+/* Compact monochrome actions above the main panel. */
 #clear-all {
   width: auto !important; display: inline-flex !important; flex: none; align-items: center; gap: 5px;
   margin: 0 !important; padding: 7px 13px !important; border-radius: 8px !important;

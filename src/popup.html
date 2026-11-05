@@ -17,18 +17,13 @@
         <button id="update-apply" type="button" style="background:#fff;color:#0b5a4a;border:0;border-radius:6px;padding:5px 10px;font-weight:700;cursor:pointer">Update now</button>
       </div>
     </div>
-    <div style="padding:6px 12px 0;text-align:right">
+    <div style="padding:6px 12px 0;display:flex;justify-content:flex-end;gap:8px;align-items:center">
       <button id="open-bulk" type="button" style="font:600 12px system-ui,sans-serif;border:1px solid #000;color:#000;background:#fff;border-radius:8px;padding:5px 10px;cursor:pointer">▦ Bulk dashboard ↗</button>
+      <button id="clear-all" type="button" title="Clear everything and start blank">&#8635; Clear all</button>
     </div>
     <main>
       <!-- ══════════════════ HUB PUBLISHER — markup unchanged from the original extension ══════════════════ -->
       <div id="panel-hub">
-        <header class="header hero">
-          <div class="hero-row">
-            <button id="clear-all" type="button" title="Clear everything and start blank">&#8635; Clear all</button>
-          </div>
-        </header>
-
         <div class="publisher-tabs" role="tablist" aria-label="Publishing area">
           <button id="tab-hubs" class="publisher-tab is-active" type="button" role="tab" aria-selected="true">Hub Pages</button>
           <button id="tab-publishing" class="publisher-tab" type="button" role="tab" aria-selected="false">Google Doc Publishing</button>
