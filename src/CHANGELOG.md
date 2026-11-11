@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.53 (Horizon) — Use the adjacent tab for Salesforce lookup
+- Open Salesforce in a new active tab immediately after the current tab instead of a separate helper window.
+- Keep the tab open, navigate to the dealer website after reading Salesforce, and capture the final URL after redirects.
+- Preserve Bulk batch helper-window behavior so it can reuse the Salesforce session between tickets.
+
 ## 1.9.52 (Horizon) — Temporarily pause full auto-run
 - Comment out the Run everything automatically controls and its module entry point; retain the UI and implementation for later restoration.
 

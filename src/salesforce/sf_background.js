@@ -1,11 +1,11 @@
 /**
  * Salesforce ticket lookup — orchestration (runs in the extension's service worker).
  *
- *  1. Opens Salesforce in a helper window (your normal logged-in browser session)
+ *  1. Opens Salesforce in the next tab of the current browser window
  *  2. Searches the ticket number, opens the ticket
  *  3. Reads the Google Doc link(s) from the Details tab
  *  4. Reads the Account's website (hover card first, Account page as fallback)
- *  5. Derives the WordPress admin URL from the website, closes the helper window
+ *  5. Opens the dealer site in that tab to capture its final redirected URL
  *
  * The result is saved to chrome.storage.session so it survives the popup closing.
  * Nothing here touches the page templates, the blog code, or the WordPress fill code.
@@ -213,7 +213,7 @@ async function runLookup(ticketRaw, { bulkBatch = false } = {}) {
   let keepWindow = false;
   try {
     await chrome.storage.session.set({ [STATE_KEY]: {
-      status: 'running', ticket, step: 'Opening Salesforce in the background…', log: [], applied: false, updatedAt: Date.now(),
+      status: 'running', ticket, step: 'Opening Salesforce in the next tab…', log: [], applied: false, updatedAt: Date.now(),
     } });
 
     if (bulkBatch) {
@@ -245,13 +245,28 @@ async function runLookup(ticketRaw, { bulkBatch = false } = {}) {
       }
     }
     if (!tabId) {
-      win = await chrome.windows.create({
-        url: 'about:blank', focused: false, type: 'normal', width: 1280, height: 900,
-      });
-      helperCreatedWindow = true;
-      tabId = win.tabs[0].id;
-      helperTabId = tabId;
-      TL.lap('Open helper window');
+      if (bulkBatch) {
+        // Bulk keeps Salesforce open between tickets so the logged-in session can be reused.
+        win = await chrome.windows.create({
+          url: 'about:blank', focused: false, type: 'normal', width: 1280, height: 900,
+        });
+        helperCreatedWindow = true;
+        tabId = win.tabs[0].id;
+        helperTabId = tabId;
+        TL.lap('Open bulk helper window');
+      } else {
+        const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        const createData = { url: 'about:blank', active: true };
+        if (activeTab?.windowId != null) {
+          createData.windowId = activeTab.windowId;
+          createData.index = activeTab.index + 1;
+        }
+        const helperTab = await chrome.tabs.create(createData);
+        tabId = helperTab.id;
+        helperTabId = tabId;
+        win = await chrome.windows.get(helperTab.windowId);
+        TL.lap('Open next browser tab');
+      }
       await navigate(tabId, C.origin + C.homePath);
     }
     if (bulkBatch && helperTabId) {
@@ -264,20 +279,18 @@ async function runLookup(ticketRaw, { bulkBatch = false } = {}) {
     if (!home.ok) {
       if (home.needsLogin) {
         keepWindow = true;
-        // Leave the Salesforce helper window in the background if manual login is needed.
+        // Leave the Salesforce tab open so the user can log in and retry.
         await setState({ status: 'error', needsLogin: true,
-          error: 'Salesforce needs a login. The helper window is in the background; bring it forward, log in, then click "Find" again.' });
+          error: 'Salesforce needs a login. The Salesforce tab is open; log in there, then click "Find" again.' });
       } else {
-        keepWindow = true; // leave it open so you can see where it got stuck
-        // Leave the Salesforce helper window in the background if manual login is needed.
+        keepWindow = true; // leave the tab open so the user can see where it got stuck
         await setState({ status: 'error', needsLogin: false,
-          error: `Salesforce did not reach the home page (stopped at: ${home.url || 'unknown'}). The helper window was left open in the background.` });
+          error: `Salesforce did not reach the home page (stopped at: ${home.url || 'unknown'}). The Salesforce tab was left open.` });
       }
       return;
     }
 
-    // Lightning only builds hover/dropdown rows in a visible, focused window
-    // Do not activate the helper window; keep the user's current work in front.
+    // Lightning only builds hover/dropdown rows in the active tab.
     await chrome.tabs.update(tabId, { active: true }).catch(() => {});
     await setState({ step: `Searching for ${ticket}…` });
     let ticketUrl = null;
@@ -404,6 +417,28 @@ async function runLookup(ticketRaw, { bulkBatch = false } = {}) {
       }
     }
 
+    // Open the dealer website in the same adjacent tab and read the browser's final URL
+    // after redirects. Keep the initial Salesforce-derived origin if navigation fails.
+    if (website && !bulkBatch) {
+      await setState({ step: 'Opening the dealer website to confirm its final URL…', accountName });
+      try {
+        await navigate(tabId, website, Math.min(C.timeouts.pageLoadMs, 15000));
+        const finalTab = await chrome.tabs.get(tabId);
+        const finalWebsite = normalizeWebsite(finalTab.url || '');
+        if (finalWebsite) {
+          if (finalWebsite !== website) await addLog(`Dealer website redirected: ${website} → ${finalWebsite}`);
+          website = finalWebsite;
+          if (cacheKey) {
+            const cache = (await chrome.storage.local.get('sfWebsiteCache')).sfWebsiteCache || {};
+            cache[cacheKey] = { website, at: Date.now() };
+            await chrome.storage.local.set({ sfWebsiteCache: cache });
+          }
+        }
+      } catch (err) {
+        await addLog(`Could not confirm the dealer website redirect (${err.message}); keeping the Salesforce website value.`);
+      }
+    }
+
     TL.lap(websiteFromCache ? 'Account → website (from the saved list)' : 'Account → website');
     const warnings = [];
     if (task.category === 'unknown') warnings.push('Could not tell what kind of task this is — pick the task type below.');
@@ -427,7 +462,7 @@ async function runLookup(ticketRaw, { bulkBatch = false } = {}) {
         if (live) await chrome.storage.session.set({ [BATCH_HELPER_KEY]: { tabId: helperTabId, windowId: win?.id, createdWindow: helperCreatedWindow } });
         else await chrome.storage.session.remove(BATCH_HELPER_KEY);
       }
-    } else if (win?.id && !keepWindow) {
+    } else if (helperCreatedWindow && win?.id && !keepWindow) {
       closeHelperWindow(win.id, win.tabs?.[0]?.id);
     }
   }
