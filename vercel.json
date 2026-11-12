@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "buildCommand": null,
-  "outputDirectory": null,
+  "outputDirectory": "public",
   "functions": {
     "api/parse.js": {
       "includeFiles": "src/{hub_parser.js,blog_parser.js,link_rules.js}",
