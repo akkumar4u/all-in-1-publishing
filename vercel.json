@@ -3,7 +3,7 @@
   "buildCommand": null,
   "functions": {
     "api/parse.js": {
-      "includeFiles": ["src/hub_parser.js", "src/blog_parser.js", "src/link_rules.js"],
+      "includeFiles": "src/{hub_parser.js,blog_parser.js,link_rules.js}",
       "maxDuration": 30
     }
   }
