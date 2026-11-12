@@ -7,6 +7,14 @@ const notePattern = /^note\s*:/i;
 // so it never ends up in the body). Set to true to add the "Disclaimers" copy at the end again.
 const BLOG_APPEND_DISCLAIMER = true;
 const disclaimersPattern = /^disclaimers?\b/i;
+// These two lines are plain-text Google Doc comment notes from the J.D. Power
+// reliability brief. Their export contains no cmnt anchor, so the structural
+// comment detector cannot distinguish them from a real disclaimer paragraph.
+const plainCommentLines = [
+  /^but there is this source from j\.d\.\s*power,?\s*so included here\b/i,
+  /^told that maintenance\/reliability briefs are subject to our research\/best judgment\b/i,
+];
+const isPlainCommentText = value => plainCommentLines.some(pattern => pattern.test(text(value).replace(/^\[[a-z]{1,2}\]\s*/i, '')));
 const EMPTY_DISCLAIMER = /^(?:n\/?a|none|no|nil|not applicable|no disclaimers?|[-–—.]+)$/i;
 const imageCodePattern = /^image\s*(?:code|shortcode|link)\b/i;
 // "Disclaimers (if applicable): Prices exclude tax." — the real text can sit on the SAME line as the label.
@@ -24,6 +32,7 @@ function disclaimerRemainder(node) {
     toStrip -= cut;
   }
   const rest = (clone.textContent || '').replace(/\[[a-z]{1,2}\]/gi, '').trim();
+  if (isPlainCommentText(rest)) return null;
   return rest && !EMPTY_DISCLAIMER.test(rest) ? full : null;   // real text after the label -> keep the whole line; blank label -> drop
 }
 // A line that is only the label ("Disclaimer:" / "Disclaimers (if applicable):") with nothing after it.
@@ -218,6 +227,7 @@ function cleanInline(html = '', formatClassMap = {}) {
 
 function isCommentLine(node) {
   if (!node) return false;
+  if (isPlainCommentText(node.textContent)) return true;
   const anchors = [
     ...(node.matches?.('a') ? [node] : []),
     ...node.querySelectorAll('a'),

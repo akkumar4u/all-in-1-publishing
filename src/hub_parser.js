@@ -48,6 +48,14 @@ const notePattern = /^note\s*:/i;
 // heading — a stray comment definition floating elsewhere must never
 // become page content either.
 const disclaimersPattern = /^disclaimers?\b/i;
+// These two lines are plain-text Google Doc comment notes from the J.D. Power
+// reliability brief. Their export contains no cmnt anchor, so the structural
+// comment detector cannot distinguish them from a real disclaimer paragraph.
+const plainCommentLines = [
+  /^but there is this source from j\.d\.\s*power,?\s*so included here\b/i,
+  /^told that maintenance\/reliability briefs are subject to our research\/best judgment\b/i,
+];
+const isPlainCommentText = value => plainCommentLines.some(pattern => pattern.test(text(value).replace(/^\[[a-z]{1,2}\]\s*/i, '')));
 // SWITCH: the disclaimer block is currently NOT added to the page (it is still cut out of the article text,
 // so it never ends up in the body). Set to true to add the "Disclaimers" copy at the end again.
 const HUB_APPEND_DISCLAIMER = true;
@@ -67,6 +75,7 @@ function disclaimerRemainder(node) {
     toStrip -= cut;
   }
   const rest = (clone.textContent || '').replace(/\[[a-z]{1,2}\]/gi, '').trim();
+  if (isPlainCommentText(rest)) return null;
   return rest && !EMPTY_DISCLAIMER.test(rest) ? full : null;   // real text after the label -> keep the whole line; blank label -> drop
 }
 // A line that is only the label ("Disclaimer:" / "Disclaimers (if applicable):") with nothing after it.
@@ -104,6 +113,7 @@ function extractTableDisclaimers(doc) {
 
 function isCommentLine(node) {
   if (!node) return false;
+  if (isPlainCommentText(node.textContent)) return true;
   const anchors = [
     ...(node.matches?.('a') ? [node] : []),
     ...node.querySelectorAll('a'),

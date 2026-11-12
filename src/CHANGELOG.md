@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.57 (Horizon) — Exclude plain-text Google Doc comment notes
+- Remove the two unanchored J.D. Power reliability comment lines from imported content in both page and Blog parsing.
+- Keep normal disclaimer text and the existing Google Docs comment-anchor cleanup.
+
 ## 1.9.56 (Horizon) — Keep downloaded images under 990 KB
 - Compress Dealer Inspire and Cloudinary images over 990 KB before storing them, saving them to Downloads, or uploading them to WordPress.
 - Reduce image quality first and resize only when needed; preserve source-dimension checks and use the compressed file for local downloads.
