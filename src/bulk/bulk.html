@@ -70,9 +70,14 @@
       <h2>Settings</h2>
       <label>Apps Script URL <small>(ends in /exec)</small><input id="set-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></label>
       <label>Your token <small>(from the owner — personal, do not share)</small><input id="set-token" type="password" autocomplete="off"></label>
+      <hr>
+      <label>Private Vercel server URL<input id="set-server-url" type="url" placeholder="https://your-private-server.vercel.app" autocomplete="off"></label>
+      <label>Private server access key <small>(owner only — stored in this Chrome profile)</small><input id="set-server-token" type="password" autocomplete="off"></label>
+      <small class="muted">Google Doc HTML is sent to this private server for parsing. It is not written to server logs.</small>
       <p id="set-msg" class="muted"></p>
       <div class="row end">
         <button id="set-test" class="btn" type="button">Test connection</button>
+        <button id="set-test-server" class="btn" type="button">Test private server</button>
         <button id="set-save" class="btn primary" value="save">Save</button>
         <button class="btn ghost" value="cancel">Close</button>
       </div>

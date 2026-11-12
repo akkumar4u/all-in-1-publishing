@@ -7,8 +7,8 @@
 
 | Feature | What it does | Files |
 |---|---|---|
-| Landing / Comparison / Blog from a Google Doc | Imports the Doc, cleans the HTML, fills WordPress | `hub_parser.js` (landing + comparison), `blog_parser.js` (blog), `hub_background.js`, `blog_background.js`, `pages/*.js` |
-| **Skipped-content report** | Anything that looks like real copy but was left out of the page is listed in the popup after import (so nothing disappears silently) | `hub_parser.js`, `blog_parser.js`, `hub_popup.js`, `blog_popup.js` |
+| Landing / Comparison / Blog from a Google Doc | Imports the Doc, sends its exported HTML to the private Vercel parser, then fills WordPress | `hub_background.js`, `blog_background.js`, `core/private_api.js`, `pages/*.js` |
+| **Skipped-content report** | Anything that looks like real copy but was left out of the page is listed in the popup after import (so nothing disappears silently) | `hub_popup.js`, `blog_popup.js` (parser code runs only on Vercel) |
 | Disclaimer switch | Disclaimer block is cut out of the article and currently NOT added (flip `BLOG_APPEND_DISCLAIMER` / `HUB_APPEND_DISCLAIMER` to `true` to add it again) | `blog_parser.js`, `hub_parser.js` |
 | Image Library picker | Finds + downloads the image (landing/comparison **1400×500**, blog **1000×400**), alt text, optional "let me choose" | `images/img_popup.js`, `images/img_background.js` |
 | Image upload | Landing/Comparison: uploaded + inserted in the Imagery row. Blog: uploaded, added at the very start of the post with alt text, and set as the **Featured image** | `hub_background.js`, `blog_background.js` |

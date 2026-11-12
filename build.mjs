@@ -26,7 +26,7 @@ async function walk(dir, base = '') {
     if (e.name.startsWith('.')) continue;
     const rel = base ? `${base}/${e.name}` : e.name;
     if (e.isDirectory()) found.push(...await walk(path.join(dir, e.name), rel));
-    else if (!/\.md$/i.test(e.name)) found.push(rel);
+    else if (!/\.md$/i.test(e.name) && !['hub_parser.js', 'blog_parser.js', 'parser.html'].includes(rel)) found.push(rel);
   }
   return found.sort();
 }

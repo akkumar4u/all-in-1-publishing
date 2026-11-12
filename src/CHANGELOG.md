@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.58 (Horizon) — Move Google Doc parsing to the private Vercel API
+- Run Hub/Landing/Comparison/VRP and Blog Google Doc parsing on the Vercel server, using the same parser source from the private repository.
+- Store the server URL and owner access key in local extension settings; do not embed the key in the extension package.
+- Exclude parser JavaScript and its offscreen document from the installable extension build.
+
 ## 1.9.57 (Horizon) — Exclude plain-text Google Doc comment notes
 - Remove the two unanchored J.D. Power reliability comment lines from imported content in both page and Blog parsing.
 - Keep normal disclaimer text and the existing Google Docs comment-anchor cleanup.

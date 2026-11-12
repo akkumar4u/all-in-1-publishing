@@ -1,4 +1,5 @@
 node_modules/
 dist/
+.vercel/
 *.zip
 .DS_Store

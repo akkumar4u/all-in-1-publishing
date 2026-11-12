@@ -1,39 +1,16 @@
 import { siteSlug } from './images/img_name.js';
 import { openInNormalWindow } from './win_util.js';
 import { startTimeLog } from './timelog.js';
+import { parseOnPrivateServer } from './core/private_api.js';
 const HUB_KEY = 'pendingHubPage';
 const STATUS_KEY = 'hubFillStatus';
 const TAB_KEY = 'hubTargetTabId';
 const RUN_KEY = 'hubRunStarted';
 const LATE_IMG_KEY = 'hubLateImage';
 const GOOGLE_DOC_ID = /docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/;
-const PARSER_DOCUMENT = 'parser.html';
-let parserDocumentPromise;
-
-/* ------------------------------------------------------------------ */
-/*  Google Doc import (Comparison Page title + Yoast meta)             */
-/*                                                                      */
-/*  Fetches the doc's exported HTML directly from the background       */
-/*  service worker, so it rides on the browser's existing Google       */
-/*  session cookies — no OAuth needed, same approach as the Auto       */
-/*  Publishing extension. An offscreen document (which has a real      */
-/*  DOM/DOMParser, unlike the service worker) does the actual parsing. */
-/* ------------------------------------------------------------------ */
 
 async function parseComparisonDocInExtension(sourceHtml) {
-  const contexts = await chrome.runtime.getContexts({
-    contextTypes: ['OFFSCREEN_DOCUMENT'],
-    documentUrls: [chrome.runtime.getURL(PARSER_DOCUMENT)],
-  });
-  if (!contexts.length) {
-    parserDocumentPromise ||= chrome.offscreen.createDocument({
-      url: PARSER_DOCUMENT,
-      reasons: ['DOM_PARSER'],
-      justification: 'Parse the comparison page Google Doc (title + meta) before filling WordPress.',
-    }).finally(() => { parserDocumentPromise = undefined; });
-    await parserDocumentPromise;
-  }
-  return chrome.runtime.sendMessage({ type: 'PARSE_COMPARISON_DOC_HTML', sourceHtml });
+  return parseOnPrivateServer('hub', sourceHtml);
 }
 
 /* ------------------------------------------------------------------ */

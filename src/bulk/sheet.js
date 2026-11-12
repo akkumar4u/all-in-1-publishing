@@ -13,10 +13,17 @@ export const COLUMNS = [
 
 export async function getSettings() {
   const s = (await chrome.storage.local.get(SETTINGS_KEY))[SETTINGS_KEY] || {};
-  return { url: (s.url || '').trim(), token: (s.token || '').trim() };
+  return { url: (s.url || '').trim(), token: (s.token || '').trim(), serverUrl: (s.serverUrl || '').trim(), serverToken: (s.serverToken || '').trim() };
 }
 export async function saveSettings(s) {
-  await chrome.storage.local.set({ [SETTINGS_KEY]: { url: (s.url || '').trim(), token: (s.token || '').trim() } });
+  const current = (await chrome.storage.local.get(SETTINGS_KEY))[SETTINGS_KEY] || {};
+  await chrome.storage.local.set({ [SETTINGS_KEY]: {
+    ...current,
+    ...(s.url !== undefined ? { url: (s.url || '').trim() } : {}),
+    ...(s.token !== undefined ? { token: (s.token || '').trim() } : {}),
+    ...(s.serverUrl !== undefined ? { serverUrl: (s.serverUrl || '').trim() } : {}),
+    ...(s.serverToken !== undefined ? { serverToken: (s.serverToken || '').trim() } : {}),
+  } });
 }
 
 async function call(op, body = {}) {

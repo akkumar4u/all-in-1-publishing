@@ -1,0 +1,51 @@
+const SETTINGS_KEY = 'bulkSettings';
+
+async function settings() {
+  const stored = (await chrome.storage.local.get(SETTINGS_KEY))[SETTINGS_KEY] || {};
+  return {
+    url: String(stored.serverUrl || '').trim().replace(/\/+$/, ''),
+    key: String(stored.serverToken || '').trim(),
+  };
+}
+
+function requireConfig(config) {
+  if (!config.url || !config.key) {
+    throw new Error('Set the private Vercel server URL and access key in Bulk dashboard → Settings first.');
+  }
+  if (!/^https:\/\//i.test(config.url)) throw new Error('The private server URL must start with https://.');
+}
+
+export async function checkPrivateServer(saved = null) {
+  const config = saved ? { url: String(saved.serverUrl || '').trim().replace(/\/+$/, ''), key: String(saved.serverToken || '').trim() } : await settings();
+  requireConfig(config);
+  let response;
+  try {
+    response = await fetch(`${config.url}/api/healthz`, { headers: { 'X-API-Key': config.key }, cache: 'no-store' });
+  } catch {
+    throw new Error('Could not reach the private Vercel server. Check the server URL and your internet connection.');
+  }
+  let data = {};
+  try { data = await response.json(); } catch { /* show the status below */ }
+  if (!response.ok || !data.ok) throw new Error(data.error || `Private server connection failed (HTTP ${response.status}).`);
+  return data;
+}
+
+export async function parseOnPrivateServer(type, sourceHtml, ownHost = '') {
+  const config = await settings();
+  requireConfig(config);
+  let response;
+  try {
+    response = await fetch(`${config.url}/api/parse`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': config.key },
+      body: JSON.stringify({ type, sourceHtml, ownHost }),
+      cache: 'no-store',
+    });
+  } catch {
+    throw new Error('Could not reach the private Vercel parser. Check the server URL and try again.');
+  }
+  let data = {};
+  try { data = await response.json(); } catch { /* handled as a server response error */ }
+  if (!response.ok || !data.ok || !data.result) throw new Error(data.error || `Private parser failed (HTTP ${response.status}).`);
+  return data.result;
+}

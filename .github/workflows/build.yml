@@ -5,7 +5,7 @@ name: Build and publish
 on:
   push:
     branches: [main]
-    paths: ['src/**', 'build.mjs', 'package.json', '.github/workflows/build.yml']
+    paths: ['src/**', 'api/**', 'server/**', 'vercel.json', 'build.mjs', 'package.json', '.github/workflows/build.yml']
   workflow_dispatch:
 
 concurrency:

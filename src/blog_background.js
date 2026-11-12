@@ -1,5 +1,6 @@
 import { startTimeLog } from './timelog.js';
 import { openInNormalWindow } from './win_util.js';
+import { parseOnPrivateServer } from './core/private_api.js';
 import './blog_category.js';   // sets globalThis.diBlogCategory
 const DRAFT_KEY = 'pendingWordPressDraft';
 const STATUS_KEY = 'lastFillStatus';
@@ -8,25 +9,10 @@ const AUTO_SAVE_KEY = 'pendingWordPressDraftAutoSave';
 const LATE_BLOG_IMG_KEY = 'blogLateImage';
 const BLOG_IMAGE_KEY = 'diBlogImage';   // the 1000x400 image picked in the popup (images/img_popup.js)
 const GOOGLE_DOC_ID = /docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/;
-const PARSER_DOCUMENT = 'parser.html';
-let parserDocumentPromise;
-
 async function parseGoogleDocInExtension(sourceHtml, adminUrl) {
-  const contexts = await chrome.runtime.getContexts({
-    contextTypes: ['OFFSCREEN_DOCUMENT'],
-    documentUrls: [chrome.runtime.getURL(PARSER_DOCUMENT)]
-  });
-  if (!contexts.length) {
-    parserDocumentPromise ||= chrome.offscreen.createDocument({
-      url: PARSER_DOCUMENT,
-      reasons: ['DOM_PARSER'],
-      justification: 'Clean Google Docs HTML before adding it to a WordPress draft.'
-    }).finally(() => { parserDocumentPromise = undefined; });
-    await parserDocumentPromise;
-  }
   let ownHost = '';
   try { ownHost = new URL(adminUrl || '').hostname; } catch { /* no admin URL */ }
-  return chrome.runtime.sendMessage({ type: 'PARSE_GOOGLE_DOC_HTML', sourceHtml, ownHost });
+  return parseOnPrivateServer('blog', sourceHtml, ownHost);
 }
 
 function postNewUrl(adminUrl) {

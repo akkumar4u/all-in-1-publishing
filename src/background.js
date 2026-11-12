@@ -1,7 +1,7 @@
 // Loads both tools' original background scripts, unmodified, into the one
 // service worker MV3 allows per extension. Static import (not importScripts)
 // is used so each file keeps its own module scope — both originals declare
-// same-named top-level consts (STATUS_KEY, GOOGLE_DOC_ID, PARSER_DOCUMENT,
+// same-named top-level consts (STATUS_KEY, GOOGLE_DOC_ID,
 // parserDocumentPromise, etc.), which would collide as classic scripts but
 // don't as separate ES modules. Each file's chrome.runtime.onMessage and
 // chrome.tabs.onUpdated listeners register independently and only act on

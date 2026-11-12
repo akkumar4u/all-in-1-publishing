@@ -2,6 +2,7 @@ import { sheetApi, getSettings, saveSettings, flushPending, pendingCount } from 
 import { runTicket, analyse, prepareImportedDoc, verifyButtonUrls, normalizeButtonMarkup, composeBlogContent, fetchBlogCategories, fetchWebsitePages, chooseParentPage, suggestedBlogCategory, resolveWebsiteRedirect, esc } from './pipeline.js';
 import { initInternalLinks } from '../links/il_popup.js';
 import { TASK_TYPES } from '../salesforce/sf_classify.js';
+import { checkPrivateServer } from '../core/private_api.js';
 
 const $ = id => document.getElementById(id);
 const send = msg => new Promise(resolve => chrome.runtime.sendMessage(msg, r => resolve(r || { ok: false, error: chrome.runtime.lastError?.message || 'No answer from the extension.' })));
@@ -341,6 +342,9 @@ async function runBatch(tickets, options = {}) {
   if (tickets.length > 30) tickets = tickets.slice(0, 30), toast('Only the first 30 tickets are taken per batch.');
   const s = await getSettings();
   if (!s.url || !s.token) { toast('Set up ⚙ Settings first (Apps Script URL + token).', 5000); $('settings').showModal(); return; }
+  if (!s.serverUrl || !s.serverToken) { toast('Add the private Vercel server URL and access key in Settings first.', 5000); $('settings').showModal(); return; }
+  try { await checkPrivateServer(s); }
+  catch (error) { toast(error.message, 7000); $('settings').showModal(); return; }
 
   state.busy = true; state.stop = false;
   $('fetch').disabled = true; $('stop').hidden = false; updateBulkButtons();
@@ -1081,17 +1085,25 @@ $('detail').addEventListener('click', async e => {
 
 $('settings-open').addEventListener('click', async () => {
   const s = await getSettings();
-  $('set-url').value = s.url; $('set-token').value = s.token; $('set-msg').textContent = '';
+  $('set-url').value = s.url; $('set-token').value = s.token;
+  $('set-server-url').value = s.serverUrl; $('set-server-token').value = s.serverToken; $('set-msg').textContent = '';
   $('settings').showModal();
 });
+$('set-test-server').addEventListener('click', async () => {
+  const settings = { serverUrl: $('set-server-url').value, serverToken: $('set-server-token').value };
+  await saveSettings(settings);
+  $('set-msg').textContent = 'Checking private server…';
+  try { await checkPrivateServer(settings); $('set-msg').textContent = '✔ Private server connected.'; }
+  catch (error) { $('set-msg').textContent = '✖ ' + error.message; }
+});
 $('set-test').addEventListener('click', async () => {
-  await saveSettings({ url: $('set-url').value, token: $('set-token').value });
+  await saveSettings({ url: $('set-url').value, token: $('set-token').value, serverUrl: $('set-server-url').value, serverToken: $('set-server-token').value });
   $('set-msg').textContent = 'Testing…';
   try { const p = await sheetApi.ping(); $('set-msg').textContent = `✔ Connected as ${p.user} — sheet “${p.spreadsheet}”.`; }
   catch (e) { $('set-msg').textContent = '✖ ' + e.message; }
 });
 $('set-save').addEventListener('click', async () => {
-  await saveSettings({ url: $('set-url').value, token: $('set-token').value });
+  await saveSettings({ url: $('set-url').value, token: $('set-token').value, serverUrl: $('set-server-url').value, serverToken: $('set-server-token').value });
   setTimeout(connect, 100);
 });
 

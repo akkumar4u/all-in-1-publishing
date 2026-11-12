@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": null,
+  "functions": {
+    "api/parse.js": {
+      "includeFiles": ["src/hub_parser.js", "src/blog_parser.js", "src/link_rules.js"],
+      "maxDuration": 30
+    }
+  }
+}
