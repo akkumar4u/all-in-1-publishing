@@ -45,6 +45,39 @@ async function bytesToDataUrl(blob) {
   return `data:${blob.type || 'image/png'};base64,${btoa(bin)}`;
 }
 
+const MAX_IMAGE_BYTES = 990 * 1024;
+const JPEG_QUALITIES = [0.9, 0.82, 0.74, 0.66, 0.58, 0.5, 0.42, 0.34, 0.26];
+
+// All library downloads pass through this function before being stored, shown,
+// saved locally, or uploaded to WordPress. Keep the original dimensions when
+// possible; reduce quality first, then scale down only when needed to meet the
+// hard 990 KB limit.
+async function prepareImage(blob) {
+  const bitmap = await createImageBitmap(blob);
+  const originalWidth = bitmap.width;
+  const originalHeight = bitmap.height;
+  if (blob.size <= MAX_IMAGE_BYTES) {
+    return { blob, width: originalWidth, height: originalHeight, sourceWidth: originalWidth, sourceHeight: originalHeight, mime: blob.type || 'image/png', compressed: false };
+  }
+
+  for (let scale = 1; scale >= 0.25; scale *= 0.85) {
+    const width = Math.max(1, Math.round(originalWidth * scale));
+    const height = Math.max(1, Math.round(originalHeight * scale));
+    const canvas = new OffscreenCanvas(width, height);
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) throw new Error('Could not prepare the image for compression.');
+    context.drawImage(bitmap, 0, 0, width, height);
+    for (const quality of JPEG_QUALITIES) {
+      const compressed = await canvas.convertToBlob({ type: 'image/jpeg', quality });
+      if (compressed.size <= MAX_IMAGE_BYTES) {
+        return { blob: compressed, width, height, sourceWidth: originalWidth, sourceHeight: originalHeight, mime: 'image/jpeg', compressed: true,
+          originalBytes: blob.size, compressedBytes: compressed.size };
+      }
+    }
+  }
+  throw new Error('Could not compress this image below 990 KB.');
+}
+
 /* ================= ranking (plain JS, runs in the background) ================= */
 const tokens = s => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
 const BAD = ['interior', 'technology', 'tech', 'dashboard', 'cockpit', 'seat', 'seats', 'steering', 'wheel', 'trunk', 'cargo', 'engine', 'console', 'screen', 'detail', 'details'];
@@ -272,7 +305,9 @@ async function saveLocal({ url, dataUrl, mime, filename, host }) {
   let nm = filename;
   try { nm = await pickDownloadName(filename, ext, host); } catch { /* keep plain name */ }
   const full = `${nm}.${ext}`;
-  const sources = [/^https?:/i.test(url || '') ? url : null, dataUrl].filter(Boolean);
+  // Use the prepared image data, never the source URL: the URL may still point
+  // to the original file and would bypass the 990 KB compression.
+  const sources = [dataUrl].filter(Boolean);
   let lastErr = 'no image data';
   for (const src of sources) {
     try {
@@ -296,8 +331,10 @@ const near = (w, h, W, H) => w && h && Math.abs(w - W) <= 2 && (BLOG ? Math.abs(
 async function fetchImage(url) {
   const blob = await (await fetch(url)).blob();
   if (blob.type && !/^image\//i.test(blob.type)) throw new Error(`the link is not an image (${blob.type})`);
-  const bmp = await createImageBitmap(blob);
-  return { dataUrl: await bytesToDataUrl(blob), w: bmp.width, h: bmp.height, mime: blob.type || 'image/png' };
+  const prepared = await prepareImage(blob);
+  return { dataUrl: await bytesToDataUrl(prepared.blob), w: prepared.width, h: prepared.height,
+    sourceW: prepared.sourceWidth, sourceH: prepared.sourceHeight,
+    mime: prepared.mime, compressed: prepared.compressed, bytes: prepared.blob.size };
 }
 
 const CLOUDINARY_COLLECTION_API = 'https://console.cloudinary.com/console/api/v1/collections/public/cc-brand-studio/ea1b600de0a008fb585d6a9850d3b132/search';
@@ -366,8 +403,9 @@ async function runCloudinary({ query, width, height, mode, pick, filename, host 
     }
     const selected = pick || candidates[0];
     const result = await fetchImage(selected.landingUrl);
-    if (!near(result.w, result.h, width, height)) throw new Error(`Cloudinary returned ${result.w}×${result.h}; expected ${width}×${height}.`);
-    await setState({ status: 'done', step: '', imageLibrary: 'cloudinary', dataUrl: result.dataUrl, width: result.w, height: result.h, mime: result.mime, imageTitle: selected.title, error: '', seconds: Math.round((Date.now() - started) / 1000) });
+    if (!near(result.sourceW, result.sourceH, width, height)) throw new Error(`Cloudinary returned ${result.sourceW}×${result.sourceH}; expected ${width}×${height}.`);
+    if (result.compressed) await addLog(`compressed image from ${(result.originalBytes / 1024).toFixed(0)} KB to ${(result.bytes / 1024).toFixed(0)} KB`);
+    await setState({ status: 'done', step: '', imageLibrary: 'cloudinary', dataUrl: result.dataUrl, width: result.w, height: result.h, mime: result.mime, imageTitle: selected.title, compressed: result.compressed, imageBytes: result.bytes, error: '', seconds: Math.round((Date.now() - started) / 1000) });
     if (filename) await saveLocal({ url: selected.landingUrl, dataUrl: result.dataUrl, mime: result.mime, filename, host });
   } catch (err) {
     await setState({ status: 'error', step: '', imageLibrary: 'cloudinary', error: err.message });
@@ -379,8 +417,8 @@ async function downloadFigure(tabId, fig, width, height, downloads) {
   if (fig.landingUrl) {
     try {
       const r = await fetchImage(fig.landingUrl);
-      if (near(r.w, r.h, width, height)) return { ok: true, dataUrl: r.dataUrl, w: r.w, h: r.h, mime: r.mime, label: 'landing', url: fig.landingUrl };
-      await addLog(`stored link came out ${r.w}x${r.h}, not ${width}x${height} - opening the library instead`);
+      if (near(r.sourceW || r.w, r.sourceH || r.h, width, height)) return { ok: true, ...r, label: 'landing', url: fig.landingUrl };
+      await addLog(`stored link came out ${r.sourceW || r.w}x${r.sourceH || r.h}, not ${width}x${height} - opening the library instead`);
     } catch (e) { await addLog('stored link failed (' + e.message + ') - opening the library instead'); }
   }
   // 2) open the image's sizes panel in the library page and use its download arrow
@@ -400,14 +438,23 @@ async function downloadFigure(tabId, fig, width, height, downloads) {
     }
     if (!r.ok && (r.exhausted || r.noPanel)) return { ok: false, why: `${r.error}${seen.length ? ' Sizes downloaded: ' + seen.join(', ') : ''}` };
     let dataUrl = r.dataUrl, w = r.w, h = r.h;
+    let sourceW = r.w, sourceH = r.h, mime = r.mime || 'image/png', compressed = false, bytes = 0, originalBytes = 0;
     if (r.ok && r.url && !dataUrl) {
-      try { const f = await fetchImage(r.url); dataUrl = f.dataUrl; w = f.w; h = f.h; r.mime = f.mime; }
+      try { const f = await fetchImage(r.url); dataUrl = f.dataUrl; w = f.w; h = f.h; sourceW = f.sourceW; sourceH = f.sourceH; mime = f.mime; compressed = f.compressed; bytes = f.bytes; originalBytes = f.originalBytes || 0; }
       catch (e) { await addLog(`link could not be read (${e.message})`); if (r.label) skip.push(r.label); continue; }
     }
     if (!r.ok) { await addLog(r.error); if (r.label) skip.push(r.label); continue; }
-    if (near(w, h, width, height)) return { ok: true, dataUrl, w, h, mime: r.mime || 'image/png', label: r.label, url: r.url || '' };
-    seen.push(`${r.label}=${w}x${h}`);
-    await addLog(`size "${r.label}" came out ${w}x${h}, not ${width}x${height} - trying another size`);
+    if (near(sourceW, sourceH, width, height)) {
+      if (dataUrl && !compressed) {
+        const prepared = await prepareImage(await (await fetch(dataUrl)).blob());
+        dataUrl = await bytesToDataUrl(prepared.blob); w = prepared.width; h = prepared.height; mime = prepared.mime;
+        compressed = prepared.compressed; bytes = prepared.blob.size; originalBytes = prepared.originalBytes || 0;
+      }
+      if (compressed) await addLog(`compressed image from ${(originalBytes / 1024).toFixed(0)} KB to ${(bytes / 1024).toFixed(0)} KB`);
+      return { ok: true, dataUrl, w, h, mime, compressed, bytes, originalBytes, label: r.label, url: r.url || '' };
+    }
+    seen.push(`${r.label}=${sourceW}x${sourceH}`);
+    await addLog(`size "${r.label}" came out ${sourceW}x${sourceH}, not ${width}x${height} - trying another size`);
     skip.push(r.label);
   }
   return { ok: false, why: `No ${width}x${height} size worked. Seen: ${seen.join(', ') || 'none'}.` };
@@ -436,13 +483,14 @@ async function run({ query, width, height, mode, pick, filename, host, key, sour
   if (pick && pick.landingUrl) {
     try {
       const r = await fetchImage(pick.landingUrl);
-      if (near(r.w, r.h, width, height)) {
-        await setState({ status: 'done', step: '', dataUrl: r.dataUrl, width: r.w, height: r.h, mime: r.mime, imageTitle: pick.title, error: '', seconds: Math.round((Date.now() - T0) / 1000) });
+      if (near(r.sourceW || r.w, r.sourceH || r.h, width, height)) {
+        if (r.compressed) await addLog(`compressed image from ${(r.originalBytes / 1024).toFixed(0)} KB to ${(r.bytes / 1024).toFixed(0)} KB`);
+        await setState({ status: 'done', step: '', dataUrl: r.dataUrl, width: r.w, height: r.h, mime: r.mime, imageTitle: pick.title, compressed: r.compressed, imageBytes: r.bytes, error: '', seconds: Math.round((Date.now() - T0) / 1000) });
         await saveLocal({ url: pick.landingUrl, dataUrl: r.dataUrl, mime: r.mime, filename, host });
         await closeHeld();
         return;
       }
-      await addLog(`stored link came out ${r.w}x${r.h} - using the library window instead`);
+      await addLog(`stored link came out ${r.sourceW || r.w}x${r.sourceH || r.h} - using the library window instead`);
     } catch (e) { await addLog('stored link failed (' + e.message + ') - using the library window instead'); }
     await setState({ status: 'running', step: 'Downloading…' });
   }
@@ -509,7 +557,7 @@ async function run({ query, width, height, mode, pick, filename, host, key, sour
     for (const fig of order) {
       const res = await downloadFigure(tabId, fig, width, height, downloads);
       if (res.ok) {
-        await setState({ status: 'done', step: '', dataUrl: res.dataUrl, width: res.w, height: res.h, mime: res.mime, imageTitle: fig.title, error: '', seconds: Math.round((Date.now() - T0) / 1000) });
+        await setState({ status: 'done', step: '', dataUrl: res.dataUrl, width: res.w, height: res.h, mime: res.mime, imageTitle: fig.title, compressed: res.compressed, imageBytes: res.bytes, error: '', seconds: Math.round((Date.now() - T0) / 1000) });
         if (filename) await saveLocal({ url: res.url, dataUrl: res.dataUrl, mime: res.mime, filename, host });   // after a pick AND in auto mode
         return;
       }

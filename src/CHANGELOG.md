@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.56 (Horizon) — Keep downloaded images under 990 KB
+- Compress Dealer Inspire and Cloudinary images over 990 KB before storing them, saving them to Downloads, or uploading them to WordPress.
+- Reduce image quality first and resize only when needed; preserve source-dimension checks and use the compressed file for local downloads.
+
 ## 1.9.55 (Horizon) — Filter wrapped Google Docs comment definitions
 - Detect standalone comment-definition anchors anywhere inside a Google Docs paragraph, including formatting wrappers.
 - Apply the cleanup in both shared page parsing (Hub, Landing, Comparison, VRP) and Blog parsing; keep real paragraph text around in-text markers.
