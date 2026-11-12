@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.54 (Horizon) — Improve Blog image, CTA review, and author matching
+- Refresh the Blog image picker layout while keeping its existing search and download flow.
+- Keep CTA review visible, render imported links as button previews, and show automatic URL-check results with a recheck action.
+- Match WordPress authors by multiple meaningful name parts in the dealer domain (e.g. championjccadillac.com → Champion Cadillac).
+
 ## 1.9.53 (Horizon) — Use the adjacent tab for Salesforce lookup
 - Open Salesforce in a new active tab immediately after the current tab instead of a separate helper window.
 - Keep the tab open, navigate to the dealer website after reading Salesforce, and capture the final URL after redirects.

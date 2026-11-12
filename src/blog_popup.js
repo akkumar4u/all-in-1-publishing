@@ -1,4 +1,4 @@
-import { verifyButtonUrls } from './bulk/pipeline.js';
+import { normalizeButtonMarkup, verifyButtonUrls } from './bulk/pipeline.js';
 
 const empty = document.querySelector('#blog-empty');
 const draftCard = document.querySelector('#draft');
@@ -9,6 +9,8 @@ const blogButtonReview = document.querySelector('#blog-button-review');
 const blogButtonCode = document.querySelector('#blog-button-code');
 const blogButtonSummary = document.querySelector('#blog-button-summary');
 const blogButtonResults = document.querySelector('#blog-button-results');
+const blogButtonPreview = document.querySelector('#blog-button-preview');
+const blogButtonCheck = document.querySelector('#blog-button-check');
 const documentUrl = document.querySelector('#document-url');
 const adminUrl = document.querySelector('#blog-admin-url');
 const importButton = document.querySelector('#import');
@@ -19,6 +21,8 @@ const autoSaveDraft = document.querySelector('#auto-save-draft');
 const contentSelection = document.querySelector('#blog-content-selection');
 const contentSelectionItems = document.querySelector('#blog-content-selection-items');
 let importedContentBlocks = [];
+let activeBlogCtaDraft = null;
+let blogCtaCheckId = 0;
 const importedFields = [
   ['Meta title', 'metaTitle'],
   ['Meta description', 'metaDescription'],
@@ -39,9 +43,12 @@ async function showDraft(draft, fillStatus) {
   document.querySelector('#slug').textContent = draft.slug || 'WordPress will generate a slug';
   document.querySelector('#target').textContent = draft.adminUrl || 'No target set';
   const buttonCode = draft.buttons || '';
+  activeBlogCtaDraft = draft;
   blogButtonCode.value = buttonCode;
-  blogButtonReview.hidden = !buttonCode.trim();
-  blogButtonSummary.textContent = buttonCode.trim() ? 'Checking URLs…' : 'No CTA buttons in this Doc.';
+  blogButtonReview.hidden = false;
+  renderBlogButtonPreview(buttonCode, draft.adminUrl || adminUrl.value || '');
+  blogButtonSummary.textContent = buttonCode.trim() ? 'Ready to check URLs' : 'No CTA buttons found in this Doc.';
+  blogButtonSummary.className = buttonCode.trim() ? '' : 'warn';
   blogButtonResults.replaceChildren();
   fields.replaceChildren(...importedFields.map(([label, key]) => {
     const row = document.createElement('div');
@@ -56,29 +63,87 @@ async function showDraft(draft, fillStatus) {
   renderContentSelection(draft.content || '');
   window.__diBlogSave = saveSelectedContent;
   document.dispatchEvent(new CustomEvent('di:blog-imported', { detail: { bodyHtml: draft.content || '', adminUrl: draft.adminUrl || '' } }));
-  if (buttonCode.trim()) {
-    try {
-      const checks = await verifyButtonUrls(buttonCode, draft.adminUrl || adminUrl.value || '');
-      blogButtonResults.replaceChildren(...checks.map((check, i) => {
-        const li = document.createElement('li');
-        li.className = check.ok ? 'ok' : check.level === 'error' ? 'error' : 'warn';
-        li.textContent = `${i + 1}. ${check.ok ? '✓' : check.level === 'error' ? '✕' : '!'} ${check.name.replace(/^Button URL — /, '')} — ${check.detail || (check.ok ? 'working' : 'needs attention')}`;
-        return li;
-      }));
-      const broken = checks.filter(check => !check.ok && check.level === 'error').length;
-      blogButtonSummary.textContent = broken ? `${broken} broken URL${broken === 1 ? '' : 's'} — expand to review` : checks.length ? 'URLs checked — expand to review' : 'No CTA URLs to check.';
-      blogButtonSummary.className = broken ? 'error' : checks.length ? 'success' : '';
-    } catch (err) {
-      blogButtonSummary.textContent = `Could not check CTA URLs: ${err.message}`;
-      blogButtonSummary.className = 'warn';
-    }
-  }
+  if (buttonCode.trim()) checkBlogButtonUrls();
   if (fillStatus?.message) {
     status.textContent = fillStatus.message;
     status.className = fillStatus.ok ? 'success' : 'error';
   }
   fillButton.disabled = Boolean(fillStatus?.filled);
 }
+
+function renderBlogButtonPreview(markup, baseUrl) {
+  const decoded = normalizeButtonMarkup(markup || '');
+  const parsed = new DOMParser().parseFromString(decoded, 'text/html');
+  let links = [...parsed.querySelectorAll('a.button, a.primary-button, a[class*="button"]')];
+  if (!links.length) links = [...parsed.querySelectorAll('a[href]')];
+  blogButtonPreview.replaceChildren();
+  if (!links.length) {
+    const note = document.createElement('span');
+    note.className = 'blog-cta-empty';
+    note.textContent = markup?.trim() ? 'Could not find a button link to preview.' : 'No buttons in the imported Google Doc.';
+    blogButtonPreview.append(note);
+    return;
+  }
+  let origin = '';
+  try { origin = new URL(/^https?:\/\//i.test(baseUrl) ? baseUrl : `https://${baseUrl}`).origin; } catch { /* preview labels still render without a site URL */ }
+  links.forEach((link, index) => {
+    const label = (link.textContent || '').replace(/\s+/g, ' ').trim() || `Button ${index + 1}`;
+    const href = (link.getAttribute('href') || '').trim();
+    const chip = document.createElement('span');
+    chip.className = 'blog-cta-preview-button';
+    chip.textContent = label;
+    let destination = href;
+    try { if (href && origin) destination = new URL(href, origin).href; } catch { /* keep the raw href visible */ }
+    chip.title = href ? `Destination: ${destination}` : 'No destination URL';
+    blogButtonPreview.append(chip);
+  });
+}
+
+async function checkBlogButtonUrls() {
+  const checkId = ++blogCtaCheckId;
+  const code = blogButtonCode.value.trim();
+  const baseUrl = activeBlogCtaDraft?.adminUrl || adminUrl.value || '';
+  renderBlogButtonPreview(code, baseUrl);
+  blogButtonResults.replaceChildren();
+  if (!code) {
+    blogButtonSummary.textContent = 'No CTA buttons found in this Doc.';
+    blogButtonSummary.className = 'warn';
+    return;
+  }
+  blogButtonCheck.disabled = true;
+  blogButtonSummary.textContent = 'Checking button URLs…';
+  blogButtonSummary.className = '';
+  const pending = document.createElement('li');
+  pending.className = 'warn';
+  pending.textContent = 'Checking each destination against the website…';
+  blogButtonResults.append(pending);
+  try {
+    const checks = await verifyButtonUrls(code, baseUrl);
+    if (checkId !== blogCtaCheckId) return;
+    blogButtonResults.replaceChildren(...checks.map((check, i) => {
+      const li = document.createElement('li');
+      li.className = check.ok ? 'ok' : check.level === 'error' ? 'error' : 'warn';
+      li.textContent = `${i + 1}. ${check.ok ? '✓' : check.level === 'error' ? '✕' : '!'} ${check.name.replace(/^Button URL — /, '')} — ${check.detail || (check.ok ? 'working' : 'needs attention')}`;
+      return li;
+    }));
+    const broken = checks.filter(check => !check.ok && check.level === 'error').length;
+    const warning = checks.filter(check => !check.ok && check.level !== 'error').length;
+    blogButtonSummary.textContent = broken ? `${broken} URL${broken === 1 ? '' : 's'} need attention` : warning ? `${warning} URL${warning === 1 ? '' : 's'} could not be confirmed` : checks.length ? `${checks.length} URL${checks.length === 1 ? '' : 's'} checked · working` : 'No CTA URLs to check.';
+    blogButtonSummary.className = broken ? 'error' : warning ? 'warn' : checks.length ? 'success' : '';
+    if (!checks.length) {
+      const li = document.createElement('li'); li.className = 'warn'; li.textContent = 'No href URLs were found to check.'; blogButtonResults.append(li);
+    }
+  } catch (err) {
+    if (checkId !== blogCtaCheckId) return;
+    blogButtonSummary.textContent = `Could not check CTA URLs: ${err.message}`;
+    blogButtonSummary.className = 'warn';
+    const li = document.createElement('li'); li.className = 'warn'; li.textContent = err.message || 'The check failed.'; blogButtonResults.replaceChildren(li);
+  } finally {
+    if (checkId === blogCtaCheckId) blogButtonCheck.disabled = false;
+  }
+}
+
+blogButtonCheck.addEventListener('click', checkBlogButtonUrls);
 
 function splitContentBlocks(html) {
   const root = new DOMParser().parseFromString(`<div id="content-root">${html || ''}</div>`, 'text/html')

@@ -41,11 +41,15 @@ function render() {
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.title = c.title;
-      cell.style.cssText = 'padding:2px;border:1px solid #c8d3d0;border-radius:6px;background:#fff;cursor:pointer;text-align:left';
+      if (p === 'blog-image') cell.className = 'blog-image-choice';
+      else cell.style.cssText = 'padding:2px;border:1px solid #c8d3d0;border-radius:6px;background:#fff;cursor:pointer;text-align:left';
       const im = document.createElement('img');
-      im.src = c.imgSrc; im.alt = c.title; im.style.cssText = 'width:100%;height:56px;object-fit:cover;border-radius:4px;display:block';
+      im.src = c.imgSrc; im.alt = c.title;
+      if (p !== 'blog-image') im.style.cssText = 'width:100%;height:56px;object-fit:cover;border-radius:4px;display:block';
       const cap = document.createElement('div');
-      cap.textContent = c.title + (c.sizes && c.sizes.length ? ` · ${WIDTH} ✓` : ''); cap.style.cssText = 'font-size:10px;line-height:1.2;margin-top:2px;overflow:hidden;max-height:24px';
+      cap.textContent = c.title + (c.sizes && c.sizes.length ? ` · ${WIDTH} ✓` : '');
+      if (p === 'blog-image') cap.className = 'blog-image-choice-title';
+      else cap.style.cssText = 'font-size:10px;line-height:1.2;margin-top:2px;overflow:hidden;max-height:24px';
       cell.append(im, cap);
       cell.addEventListener('click', async () => {
         setStatus(`Downloading "${c.title}"…`);
@@ -61,9 +65,11 @@ function render() {
     }));
     // custom search text: look again in the library with different words
     const again = document.createElement('div');
-    again.style.cssText = 'grid-column:1/-1;display:flex;gap:6px;margin-top:4px';
+    again.className = p === 'blog-image' ? 'blog-image-search-again' : '';
+    if (p !== 'blog-image') again.style.cssText = 'grid-column:1/-1;display:flex;gap:6px;margin-top:4px';
     const ai = document.createElement('input');
-    ai.type = 'text'; ai.value = queryEl.value || state.query || ''; ai.placeholder = 'Custom search text'; ai.style.cssText = 'flex:1;min-width:0';
+    ai.type = 'text'; ai.value = queryEl.value || state.query || ''; ai.placeholder = 'Custom search text';
+    if (p !== 'blog-image') ai.style.cssText = 'flex:1;min-width:0';
     const ab = document.createElement('button');
     ab.type = 'button'; ab.textContent = 'Search again';
     ab.addEventListener('click', () => { if (!ai.value.trim()) return; queryEl.value = ai.value.trim(); queryEdited = true; chooseBox.checked = true; btn.click(); });
@@ -100,7 +106,8 @@ function renderChips() {
   chipsEl.replaceChildren(...list.map(v => {
     const b = document.createElement('button');
     b.type = 'button'; b.textContent = v; b.title = 'Use this search text';
-    b.style.cssText = 'padding:2px 8px;border:1px solid #c8d3d0;border-radius:12px;background:#fff;cursor:pointer;font-size:11px';
+    if (p === 'blog-image') b.className = 'image-query-chip';
+    else b.style.cssText = 'padding:2px 8px;border:1px solid #c8d3d0;border-radius:12px;background:#fff;cursor:pointer;font-size:11px';
     b.addEventListener('click', () => { queryEl.value = v; queryEdited = true; });
     return b;
   }));

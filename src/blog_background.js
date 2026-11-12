@@ -682,45 +682,35 @@ async function fillGutenbergDraft(draft, autoSaveDraft = false) {
       });
       const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const domainNormalized = normalize(domainName);
-
-      // Longest run of characters the two strings share, checked in both
-      // directions (domain containing the name, or name containing the
-      // domain) so "mcdonald" matches inside "mcdonaldchevymarlette" and
-      // vice versa.
-      const overlapLength = candidate => {
-        if (!candidate) return 0;
-        if (domainNormalized.includes(candidate) || candidate.includes(domainNormalized)) {
-          return Math.min(candidate.length, domainNormalized.length);
-        }
-        let best = 0;
-        for (let start = 0; start < candidate.length; start += 1) {
-          for (let end = candidate.length; end > start; end -= 1) {
-            const chunk = candidate.slice(start, end);
-            if (chunk.length > best && domainNormalized.includes(chunk)) {
-              best = chunk.length;
-              break;
-            }
-          }
-        }
-        return best;
-      };
+      const ignored = new Set(['author', 'dealer', 'staff', 'admin', 'user', 'editor', 'manager', 'team', 'auto', 'automotive', 'cars', 'car']);
+      // A dealership domain can contain short location/group codes between
+      // the store name and make: championjccadillac.com -> Champion + Cadillac.
+      // Score meaningful name words independently so those extra letters do
+      // not prevent the correct WordPress author from being selected.
+      const meaningfulWords = value => String(value || '').toLowerCase()
+        .split(/[^a-z0-9]+/).filter(word => word.length >= 4 && !ignored.has(word));
 
       const scored = users
         .map(user => {
-          const candidates = [user.slug, user.name, user.nickname, user.username].map(normalize);
-          const bestOverlap = Math.max(0, ...candidates.map(overlapLength));
-          return { user, bestOverlap };
+          const phrases = [user.name, user.nickname, user.slug, user.username].filter(Boolean);
+          const matches = phrases.map(phrase => {
+            const words = [...new Set(meaningfulWords(phrase))];
+            const found = words.filter(word => domainNormalized.includes(normalize(word)));
+            const length = found.reduce((sum, word) => sum + word.length, 0);
+            // A multi-word store-name match outranks a single shared word.
+            const score = found.length >= 2 ? 1000 + length : found.length === 1 ? 100 + length : 0;
+            return { score, found };
+          }).sort((a, b) => b.score - a.score);
+          return { user, bestMatch: matches[0] || { score: 0, found: [] } };
         })
-        // Require a real chunk of overlap (4+ characters) so short, generic
-        // names like "admin" don't count as a match by accident.
-        .filter(entry => entry.bestOverlap >= 4)
-        .sort((a, b) => b.bestOverlap - a.bestOverlap);
+        .filter(entry => entry.bestMatch.score > 0)
+        .sort((a, b) => b.bestMatch.score - a.bestMatch.score);
 
       if (!scored.length) {
         log(`No WordPress user's name resembles the domain "${domainName}" closely enough to auto-select an author.`);
         return null;
       }
-      log(`Matched author "${scored[0].user.name}" to domain "${domainName}" (overlap: ${scored[0].bestOverlap} chars).`);
+      log(`Matched author "${scored[0].user.name}" to domain "${domainName}" (matched name parts: ${scored[0].bestMatch.found.join(', ')}).`);
       return scored[0].user;
     } catch (error) {
       log('Could not fetch/match WordPress users for author selection:', error.message);
