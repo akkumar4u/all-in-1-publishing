@@ -103,11 +103,21 @@ function extractTableDisclaimers(doc) {
 }
 
 function isCommentLine(node) {
-  const first = node.firstElementChild;
-  if (!first || first.tagName !== 'A') return false;
-  const href = first.getAttribute('href') || '';
-  const id = first.getAttribute('id') || '';
-  return /^#?cmnt/i.test(href) || /^cmnt/i.test(id);
+  if (!node) return false;
+  const anchors = [
+    ...(node.matches?.('a') ? [node] : []),
+    ...node.querySelectorAll('a'),
+  ];
+  // Google Docs can put its comment anchor inside a formatting <span>, so
+  // checking only firstElementChild misses the comment text and lets it fall
+  // through as ordinary page copy. Definition anchors point back to cmnt_ref
+  // and use a cmntN id; in-text markers use the inverse cmnt_refN id and are
+  // removed by cleanNodeText without discarding the surrounding paragraph.
+  return anchors.some(anchor => {
+    const href = anchor.getAttribute('href') || '';
+    const id = anchor.getAttribute('id') || '';
+    return /^cmnt(?!_ref)/i.test(id) || /^#?cmnt_ref/i.test(href);
+  });
 }
 const buttonsLabelPattern = /^(?:cta\s+)?buttons?\b/i;
 const recommendedLinksPattern = /^recommended internal links\b/i;

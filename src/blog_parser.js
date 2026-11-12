@@ -217,11 +217,19 @@ function cleanInline(html = '', formatClassMap = {}) {
 }
 
 function isCommentLine(node) {
-  const first = node.firstElementChild;
-  if (!first || first.tagName !== 'A') return false;
-  const href = first.getAttribute('href') || '';
-  const id = first.getAttribute('id') || '';
-  return /^#?cmnt/i.test(href) || /^cmnt/i.test(id);
+  if (!node) return false;
+  const anchors = [
+    ...(node.matches?.('a') ? [node] : []),
+    ...node.querySelectorAll('a'),
+  ];
+  // Comment-definition anchors may be nested under Google Docs formatting
+  // spans. Detect the definition anywhere in the paragraph instead of only
+  // when its anchor is the paragraph's first direct child.
+  return anchors.some(anchor => {
+    const href = anchor.getAttribute('href') || '';
+    const id = anchor.getAttribute('id') || '';
+    return /^cmnt(?!_ref)/i.test(id) || /^#?cmnt_ref/i.test(href);
+  });
 }
 
 // A paragraph made up entirely of CTA button link(s) — e.g. a "[Learn More]

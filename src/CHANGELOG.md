@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.55 (Horizon) — Filter wrapped Google Docs comment definitions
+- Detect standalone comment-definition anchors anywhere inside a Google Docs paragraph, including formatting wrappers.
+- Apply the cleanup in both shared page parsing (Hub, Landing, Comparison, VRP) and Blog parsing; keep real paragraph text around in-text markers.
+
 ## 1.9.54 (Horizon) — Improve Blog image, CTA review, and author matching
 - Refresh the Blog image picker layout while keeping its existing search and download flow.
 - Keep CTA review visible, render imported links as button previews, and show automatic URL-check results with a recheck action.
