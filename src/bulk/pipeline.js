@@ -252,7 +252,14 @@ async function verifyButtonUrlsLocally(buttonsHtml, websiteUrl) {
       return { name, ok: true, level: 'ok', detail: 'HTTP ' + result.status + ' · working · ' + target };
     }
     const status = Number(result.status || 0);
-    return { name, ok: false, level: status >= 400 ? 'error' : 'warn', detail: (status ? 'HTTP ' + status : 'Could not verify') + ' · ' + (result.reason || 'request failed') + ' · ' + target };
+    const inconclusive = [401, 403, 408, 429].includes(status) || status >= 500 || status === 0;
+    const level = inconclusive ? 'warn' : status >= 400 ? 'error' : 'warn';
+    const reason = status === 403 ? 'site blocked the automated check; URL is unconfirmed, not confirmed broken'
+      : status === 401 ? 'page requires authorization; URL is unconfirmed'
+      : status === 429 ? 'site rate-limited the check; URL is unconfirmed'
+      : status >= 500 ? 'site returned a server error; URL is unconfirmed'
+      : result.reason || 'request failed';
+    return { name, ok: false, level, detail: (status ? 'HTTP ' + status : 'Could not verify') + ' · ' + reason + ' · ' + target };
   })).then(rows => rows.filter(Boolean));
 }
 

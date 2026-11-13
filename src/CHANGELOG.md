@@ -206,6 +206,11 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.64 (Horizon) — Treat blocked button checks as unconfirmed
+- HTTP 401, 403, 408, 429, 5xx, and network failures no longer label a button as broken; report them as unconfirmed, with a specific reason for common blocked responses.
+- Keep confirmed broken HTTP responses and redirects as errors, and show separate counts for broken vs. unconfirmed links in the Hub CTA status.
+- Files: server/button-checker.js, src/bulk/pipeline.js, src/hub_popup.js, src/manifest.json
+
 ## 1.9.63 (Horizon) — Public published-page verification
 - After the dashboard saves a Published URL, verify its HTTP response, redirect destination, public HTML H1, expected title and canonical host through an authenticated Vercel endpoint.
 - The server follows a limited redirect chain, rejects non-public/private hosts at each hop, and caps the fetched HTML at 2 MB. It receives only the public URL and page title, never WordPress cookies or credentials.

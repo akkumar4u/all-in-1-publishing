@@ -269,8 +269,9 @@ async function checkComparisonButtonUrls() {
       comparisonButtonResults.append(li);
     });
     const broken = checks.filter(c => !c.ok && c.level === 'error').length;
-    comparisonButtonStatus.textContent = broken ? `${broken} broken button URL${broken === 1 ? '' : 's'} found.` : 'Button URLs checked.';
-    comparisonButtonStatus.className = broken ? 'error' : 'success';
+    const unconfirmed = checks.filter(c => !c.ok && c.level !== 'error').length;
+    comparisonButtonStatus.textContent = [broken ? `${broken} broken URL${broken === 1 ? '' : 's'}` : '', unconfirmed ? `${unconfirmed} could not be confirmed` : ''].filter(Boolean).join(' · ') || 'Button URLs checked · working.';
+    comparisonButtonStatus.className = broken ? 'error' : unconfirmed ? 'warn' : 'success';
   } catch (err) {
     if (run === ctaCheckRun) { comparisonButtonStatus.textContent = `Could not check button URLs: ${err.message}`; comparisonButtonStatus.className = 'warn'; }
   }
