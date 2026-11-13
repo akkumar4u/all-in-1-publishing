@@ -206,6 +206,11 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.69 (Horizon) — Strip plain-text Doc comment from article
+- Exclude the Google Docs editorial note “Requested, so included once” when it is exported as a plain paragraph without comment anchor markup.
+- Apply the cleanup in both Hub/page and Blog parsers so the comment cannot be published in any template.
+- Files: src/hub_parser.js, src/blog_parser.js, src/manifest.json
+
 ## 1.9.68 (Horizon) — Keep connection settings on Clear all
 - Clear all now preserves Bulk dashboard settings, including the private Vercel URL/access key and sheet connection, while clearing temporary ticket, image, form, and session data.
 - Files: src/clear_all.js, src/manifest.json

@@ -13,6 +13,7 @@ const disclaimersPattern = /^disclaimers?\b/i;
 const plainCommentLines = [
   /^but there is this source from j\.d\.\s*power,?\s*so included here\b/i,
   /^told that maintenance\/reliability briefs are subject to our research\/best judgment\b/i,
+  /^requested,?\s+so\s+included\s+once\s*[.!]?$/i,
 ];
 const isPlainCommentText = value => plainCommentLines.some(pattern => pattern.test(text(value).replace(/^\[[a-z]{1,2}\]\s*/i, '')));
 const EMPTY_DISCLAIMER = /^(?:n\/?a|none|no|nil|not applicable|no disclaimers?|[-–—.]+)$/i;
