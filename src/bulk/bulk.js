@@ -1,8 +1,8 @@
 import { sheetApi, getSettings, saveSettings, flushPending, pendingCount } from './sheet.js';
-import { runTicket, analyse, prepareImportedDoc, verifyButtonUrls, normalizeButtonMarkup, composeBlogContent, fetchBlogCategories, fetchWebsitePages, chooseParentPage, suggestedBlogCategory, resolveWebsiteRedirect, esc } from './pipeline.js';
+import { runTicket, analyse, verifyButtonUrls, normalizeButtonMarkup, fetchBlogCategories, fetchWebsitePages, chooseParentPage, suggestedBlogCategory, resolveWebsiteRedirect, esc } from './pipeline.js';
 import { initInternalLinks } from '../links/il_popup.js';
 import { TASK_TYPES } from '../salesforce/sf_classify.js';
-import { checkPrivateServer, runPrivateQa, verifyPublishedPageOnPrivateServer } from '../core/private_api.js';
+import { checkPrivateServer, runPrivateQa, verifyPublishedPageOnPrivateServer, buildPublishingPayload } from '../core/private_api.js';
 
 const $ = id => document.getElementById(id);
 const send = msg => new Promise(resolve => chrome.runtime.sendMessage(msg, r => resolve(r || { ok: false, error: chrome.runtime.lastError?.message || 'No answer from the extension.' })));
@@ -228,13 +228,12 @@ async function renderDetail(ticket) {
   const isVrpTicket = /vrp/.test(ticketType), isLandingTicket = /landing/.test(ticketType), isComparisonTicket = /comparison/.test(ticketType);
   if (pkg?.imported && !pkg.hub && !isVrpTicket && (isLandingTicket || isComparisonTicket)) {
     const imp0 = pkg.imported, pageKind = isComparisonTicket ? 'comparison' : 'landing';
-    pkg.hub = generateHub(pageKind, {
-      pageTitle:imp0.title || r['Page Title'] || '', pageSlug:imp0.slug || r.Slug || '',
-      comparisonMetaTitle:imp0.metaTitle || r['Meta Title'] || '', comparisonMetaDescription:imp0.metaDescription || r['Meta Description'] || '',
-      ctaLearnMoreUrl:'', ctaInventoryUrl:'', vehicleName:'', ctaBodyContent:imp0.contentHtml || '',
-      compareRows:imp0.compareRows || [], ctaButtonsHtml:imp0.buttonsHtml || '', suppressCtaButtons:!imp0.buttonsHtml, landingParent:'', templateName:'DI Page Composer',
-      vrpSeoContent:false, landingBottom:r['Group 1']==='Yes'?'form':'blog', landingImage:null,
-    });
+    const built = await buildPublishingPayload({ kind:'page', pageKind, adminUrl:r['WP Admin URL'] || r.Website || '', parent:'', landingBottom:r['Group 1']==='Yes'?'form':'blog', doc:{
+      title:imp0.title || r['Page Title'] || '', pageSlug:imp0.slug || r.Slug || '',
+      metaTitle:imp0.metaTitle || r['Meta Title'] || '', metaDescription:imp0.metaDescription || r['Meta Description'] || '',
+      bodyHtml:imp0.contentHtml || '', compareRows:imp0.compareRows || [], buttons:imp0.buttonsHtml || '',
+    } });
+    pkg.hub = built.hub;
     pkg.hub.adminUrl = r['WP Admin URL'] || r.Website || ''; pkg.hub.bulkNoImage = true; pkg.canDraft = true;
     r.Template = 'DI Page Composer';
     state.cache.set(t, { row:r, pkg }); setRow(r);
@@ -398,8 +397,29 @@ async function saveReview(ticket) {
   const metaTitle = $('review-meta-title').value.trim(), metaDescription = $('review-meta-description').value.trim();
   const buttonsHtml = normalizeButtonMarkup($('review-button-code')?.value || '');
   if (pkg.blog) {
-    content = composeBlogContent(content, buttonsHtml, pkg.blog.imageShortcode || '');
+    const built = await buildPublishingPayload({ kind:'blog', adminUrl:row['WP Admin URL'] || row.Website || '', blog:{ bodyHtml:content, buttons:buttonsHtml, imageShortcode:pkg.blog.imageShortcode || '' } });
+    content = built.blog.content;
     Object.assign(pkg.blog, { title, slug, metaTitle, metaDescription, buttons: buttonsHtml, content });
+  } else if (pkg.hub) {
+    const isVrp = !!pkg.hub.vrpSeoContent, isComparison = /comparison/i.test(row['Task Type'] || '');
+    let built, serverBuiltHubTemplate = false;
+    if (pkg.hub.bulkHubTemplate) {
+      serverBuiltHubTemplate = true;
+      const hubType = pkg.hub.hubType || String(pkg.taskKey || '').split(':')[1] || 'research';
+      const cleanSubject = String(row.Subject || '').replace(/\b(hub|page|publishing|enhancement|service and parts information|service and parts|make research|research|finance and insurance information|finance and insurance)\b/gi, ' ').replace(/[-–—:|]+/g, ' ').replace(/\s+/g, ' ').trim();
+      const brandName = hubType === 'research' ? cleanSubject : '';
+      built = await buildPublishingPayload({ kind:'hub', hubType, inputs:{ brandName } });
+      built.hub.parentSlug = row['Parent Page'] || pkg.hub.parentSlug || null;
+    } else {
+      const pageKind = isVrp || /landing|comparison/i.test(row['Task Type'] || '') ? (isComparison ? 'comparison' : 'landing') : '';
+      built = await buildPublishingPayload({
+        kind:'page', adminUrl:row['WP Admin URL'] || row.Website || '', isVrp, pageKind,
+        parent:row['Parent Page'] || pkg.hub.parentSlug || '', landingBottom:row['Group 1'] === 'Yes' ? 'form' : 'blog',
+        doc:{ title, pageSlug:slug, metaTitle, metaDescription, bodyHtml:content, buttons:buttonsHtml, compareRows:pkg.imported?.compareRows || [] },
+      });
+    }
+    content = serverBuiltHubTemplate ? (built.hub.sections || []).map(section => section.html || '').join('\n') : built.prepared.content;
+    if (built.hub) pkg.hub = { ...built.hub, adminUrl:row['WP Admin URL'] || row.Website || '', bulkNoImage:pkg.hub.bulkNoImage, bulkHubTemplate:pkg.hub.bulkHubTemplate, hubType:pkg.hub.hubType, vrpExistingPage:pkg.hub.vrpExistingPage, existingPageUrl:pkg.hub.existingPageUrl, vrpSelectedPageUrl:pkg.hub.vrpSelectedPageUrl };
   }
   const stats = analyse(content, row['WP Admin URL'] || row.Website || '');
   row['Page Title'] = title; row.Slug = slug; row['Meta Title'] = metaTitle; row['Meta Title Chars'] = metaTitle.length;
@@ -408,22 +428,6 @@ async function saveReview(ticket) {
   row['Doc URL'] = $('review-doc-url').value.trim();
   pkg.imported = { ...(pkg.imported || {}), title, slug, metaTitle, metaDescription, buttonsHtml, contentHtml: content };
   if (pkg.blog) Object.assign(pkg.blog, { title, slug, metaTitle, metaDescription, buttons: buttonsHtml, content });
-  if (pkg.hub?.vrpSeoContent) Object.assign(pkg.hub, { pageTitle: title, pageSlug: slug, comparisonMetaTitle: metaTitle, comparisonMetaDescription: metaDescription, vrpContentHtml: content, ctaButtonsHtml: buttonsHtml });
-  else if (pkg.hub && /landing|comparison/i.test(row['Task Type'] || '')) {
-    const isComparison = /comparison/i.test(row['Task Type'] || '');
-    const sectionId = isComparison ? 'ctacontent' : 'landingcontent';
-    const oldSection = pkg.hub.sections?.find(s => s.id === sectionId);
-    const retainedButtons = buttonsHtml;
-    const fresh = generateHub(isComparison ? 'comparison' : 'landing', {
-      pageTitle: title, pageSlug: slug, comparisonMetaTitle: metaTitle, comparisonMetaDescription: metaDescription,
-      ctaLearnMoreUrl: '', ctaInventoryUrl: '', vehicleName: '', ctaBodyContent: content,
-      ctaButtonsHtml: retainedButtons, suppressCtaButtons: !retainedButtons, landingParent: row['Parent Page'] || pkg.hub.parentSlug || '',
-      templateName: pkg.hub.templateName || 'DI Page Composer', landingBottom: row['Group 1'] === 'Yes' ? 'form' : 'blog', landingImage: null,
-    });
-    const freshSection = fresh.sections?.find(s => s.id === sectionId);
-    if (oldSection && freshSection) oldSection.html = freshSection.html;
-    Object.assign(pkg.hub, { title: fresh.title, slug: fresh.slug, parentSlug: fresh.parentSlug, metaTitle: fresh.metaTitle, metaDescription: fresh.metaDescription });
-  }
   const check = (name, ok, detail = '') => ({ name, ok, level: ok ? 'ok' : 'error', detail });
   const checks = (pkg.checks || []).filter(c => !['Page title (H1 in the doc)','Page slug in the doc','Meta title present','Meta title length (≤ 60)','Meta description present','Meta description length (≤ 160)','Content found','Content starts with an H2','No H1 left in the content','External links have nofollow'].includes(c.name) && !c.name.startsWith('Button URL — '));
   checks.push(check('Page title (H1 in the doc)', !!title, title));
@@ -467,7 +471,8 @@ async function importReviewDoc(ticket, urlOverride = '') {
     const imported = await send({ type: 'IMPORT_GOOGLE_DOC', documentUrl: url, adminUrl: admin, landingBottom: 'blog', returnOnly: true });
     if (!imported.ok) throw new Error(imported.error || 'Could not import the Blog Google Doc.');
     const blog = imported.draft || {};
-    const content = composeBlogContent(blog.bodyHtml || '', blog.buttons || '', blog.imageShortcode || '');
+    const builtBlog = await buildPublishingPayload({ kind:'blog', adminUrl:admin, blog:{ bodyHtml:blog.bodyHtml || '', buttons:blog.buttons || '', imageShortcode:blog.imageShortcode || '' } });
+    const content = builtBlog.blog.content;
     const stats = analyse(content, admin);
     Object.assign(row, { 'Doc URL': url, 'Page Title': blog.title || '', Slug: blog.slug || '', 'Meta Title': blog.metaTitle || '', 'Meta Title Chars': (blog.metaTitle || '').length, 'Meta Description': blog.metaDescription || '', 'Meta Desc Chars': (blog.metaDescription || '').length, 'Content Words': stats.words, 'Content Chars': stats.chars, 'H2 Count': stats.h2, 'Internal Links': stats.internal, 'External Links': stats.external, Template: 'Blog' });
     pkg.imported = { ...(pkg.imported || {}), title: blog.title || '', slug: blog.slug || '', metaTitle: blog.metaTitle || '', metaDescription: blog.metaDescription || '', buttonsHtml: blog.buttons || '', contentHtml: content, skipped: blog.skipped || [] };
@@ -488,16 +493,21 @@ async function importReviewDoc(ticket, urlOverride = '') {
     toast('Blog Doc imported. Review it and save a WordPress draft from here.', 4000);
     return;
   }
-  const prepared = prepareImportedDoc(doc, { isVrp, adminUrl: admin });
+  const builtPage = await buildPublishingPayload({
+    kind:'page', adminUrl:admin, isVrp,
+    pageKind:(isVrp || isLanding || isComparison) ? (isComparison ? 'comparison' : 'landing') : '',
+    parent:row['Parent Page'] || '', landingBottom:row['Group 1'] === 'Yes' ? 'form' : 'blog',
+    doc:{ title:doc.title || '', pageSlug:doc.pageSlug || '', metaTitle:doc.metaTitle || '', metaDescription:doc.metaDescription || '', bodyHtml:doc.bodyHtml || '', buttons:doc.buttons || '', compareRows:doc.compareRows || [] },
+  });
+  const prepared = { ...builtPage.prepared, stats:analyse(builtPage.prepared.content, admin) };
   row['Doc URL'] = url; row['Page Title'] = prepared.title; row.Slug = prepared.slug;
   row['Meta Title'] = prepared.metaTitle; row['Meta Title Chars'] = prepared.metaTitle.length;
   row['Meta Description'] = prepared.metaDescription; row['Meta Desc Chars'] = prepared.metaDescription.length;
   row['Content Words'] = prepared.stats.words; row['Content Chars'] = prepared.stats.chars; row['H2 Count'] = prepared.stats.h2;
   row['Internal Links'] = prepared.stats.internal; row['External Links'] = prepared.stats.external;
-  pkg.imported = { ...(pkg.imported || {}), title:prepared.title, slug:prepared.slug, metaTitle:prepared.metaTitle, metaDescription:prepared.metaDescription, buttonsHtml:doc.buttons||'', contentHtml:prepared.content, disclaimerFound:!!doc.disclaimerFound, skipped:doc.skipped||[] };
+  pkg.imported = { ...(pkg.imported || {}), title:prepared.title, slug:prepared.slug, metaTitle:prepared.metaTitle, metaDescription:prepared.metaDescription, buttonsHtml:doc.buttons||'', contentHtml:prepared.content, compareRows:doc.compareRows||[], disclaimerFound:!!doc.disclaimerFound, skipped:doc.skipped||[] };
   if (isVrp || isLanding || isComparison) {
-    const pageKind = isComparison ? 'comparison' : 'landing';
-    pkg.hub = generateHub(pageKind, { pageTitle:prepared.title, pageSlug:prepared.slug, comparisonMetaTitle:prepared.metaTitle, comparisonMetaDescription:prepared.metaDescription, ctaLearnMoreUrl:'', ctaInventoryUrl:'', vehicleName:'', ctaBodyContent:prepared.content, compareRows:doc.compareRows||[], ctaButtonsHtml:doc.buttons||'', landingParent:row['Parent Page']||'', templateName:isVrp?'Lightning':'DI Page Composer', vrpSeoContent:isVrp, landingBottom:isVrp?'':(row['Group 1']==='Yes'?'form':'blog'), landingImage:null });
+    pkg.hub = builtPage.hub;
     pkg.hub.adminUrl = admin; pkg.hub.bulkNoImage = !isVrp; pkg.canDraft = true; row.Template=isVrp?'Lightning':'DI Page Composer';
   }
   const checks = (pkg.checks||[]).filter(c=>!['Page title (H1 in the doc)','Page slug in the doc','Meta title present','Meta title length (≤ 60)','Meta description present','Meta description length (≤ 160)','Content found','Content starts with an H2','No H1 left in the content','External links have nofollow','Nothing skipped from the doc'].includes(c.name) && !c.name.startsWith('Button URL — '));
@@ -723,13 +733,13 @@ async function changeTicketType(ticket, key) {
   if (type.category === 'hub') {
     const hubType = type.hubType;
     const cleanSubject = String(row.Subject || '').replace(/\b(hub|page|publishing|enhancement|service and parts information|service and parts|make research|research|finance and insurance information|finance and insurance)\b/gi, ' ').replace(/[-–—:|]+/g, ' ').replace(/\s+/g, ' ').trim();
-    const brandName = hubType === 'research' ? (cleanSubject || String(row.Account || '').replace(/\b(dealer(ship)?|motors?|automotive|auto)\b/gi, '').trim()) : '';
-    const hub = generateHub(hubType, { brandName });
+    const brandName = hubType === 'research' ? cleanSubject : '';
+    const { hub } = await buildPublishingPayload({ kind:'hub', hubType, inputs:{ brandName } });
     const parent = chooseParentPage(pkg.sitePages || [], key, row.Subject, hub.title) || hub.parentSlug || '';
-    hub.adminUrl = row['WP Admin URL'] || row.Website || ''; hub.parentSlug = parent || null; hub.bulkHubTemplate = true;
+    hub.adminUrl = row['WP Admin URL'] || row.Website || ''; hub.parentSlug = parent || null; hub.bulkHubTemplate = true; hub.hubType = hubType;
     const contentHtml = (hub.sections || []).map(section => section.html || '').join('\n');
     pkg.hub = hub; pkg.canDraft = !!hub.title;
-    pkg.imported = { title:hub.title, slug:hub.slug, metaTitle:hub.metaTitle, metaDescription:hub.metaDescription, buttonsHtml:'', contentHtml };
+    pkg.imported = { title:hub.title, slug:hub.slug, metaTitle:hub.metaTitle, metaDescription:hub.metaDescription, buttonsHtml:'', contentHtml, compareRows:[] };
     const stats = analyse(contentHtml, row['WP Admin URL'] || row.Website || '');
     Object.assign(row, { 'Page Title':hub.title, Slug:hub.slug, 'Meta Title':hub.metaTitle, 'Meta Title Chars':hub.metaTitle.length, 'Meta Description':hub.metaDescription, 'Meta Desc Chars':hub.metaDescription.length, Template:hub.templateName || 'DI Page Composer', 'Parent Page':parent, 'Content Words':stats.words, 'Content Chars':stats.chars, 'H2 Count':stats.h2, 'Internal Links':stats.internal, 'External Links':stats.external });
     pkg.checks = [{ name:'Hub page template built', ok:!!hub.title && !!hub.sections?.length, level:'ok', detail:type.label }, ...await verifyButtonUrls(contentHtml, row['WP Admin URL'] || row.Website || '')];

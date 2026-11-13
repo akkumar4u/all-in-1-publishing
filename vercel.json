@@ -5,7 +5,11 @@
   "outputDirectory": "public",
   "functions": {
     "api/parse.js": {
-      "includeFiles": "src/*.js",
+      "includeFiles": "src/**/*.js",
+      "maxDuration": 30
+    },
+    "api/build-payload.js": {
+      "includeFiles": "src/**/*.js",
       "maxDuration": 30
     },
     "api/verify-buttons.js": {

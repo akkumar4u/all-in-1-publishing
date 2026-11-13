@@ -25,6 +25,7 @@ async function walk(dir, base = '') {
   for (const e of await readdir(dir, { withFileTypes: true })) {
     if (e.name.startsWith('.')) continue;
     const rel = base ? `${base}/${e.name}` : e.name;
+    if (!e.isDirectory() && ['core/hub-core.js', 'hub-templates.js', 'pages/service.js', 'pages/research.js', 'pages/finance.js', 'pages/comparison.js', 'pages/landing.js'].includes(rel)) continue;
     if (e.isDirectory()) found.push(...await walk(path.join(dir, e.name), rel));
     else if (!/\.md$/i.test(e.name) && !['hub_parser.js', 'blog_parser.js', 'parser.html'].includes(rel)) found.push(rel);
   }

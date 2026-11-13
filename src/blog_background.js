@@ -669,6 +669,23 @@ async function fillGutenbergDraft(draft, autoSaveDraft = false) {
       const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const domainNormalized = normalize(domainName);
       const ignored = new Set(['author', 'dealer', 'staff', 'admin', 'user', 'editor', 'manager', 'team', 'auto', 'automotive', 'cars', 'car']);
+      // Some sites use a compact username/slug instead of a display name,
+      // e.g. championcadillac_author for championjccadillac.com. Match that
+      // recognizable store name as an ordered subsequence, allowing a short
+      // dealer/group code in the domain ("jc" in this example).
+      const compactSlugName = value => normalize(value).replace(/(?:author|dealer|staff|admin|editor|manager|user)$/i, '');
+      const isCompactDomainMatch = value => {
+        const candidate = compactSlugName(value);
+        if (candidate.length < 10 || candidate.length > domainNormalized.length) return false;
+        let cursor = 0;
+        for (const char of candidate) {
+          cursor = domainNormalized.indexOf(char, cursor);
+          if (cursor < 0) return false;
+          cursor += 1;
+        }
+        const skipped = domainNormalized.length - candidate.length;
+        return skipped <= 4;
+      };
       // A dealership domain can contain short location/group codes between
       // the store name and make: championjccadillac.com -> Champion + Cadillac.
       // Score meaningful name words independently so those extra letters do
@@ -684,7 +701,8 @@ async function fillGutenbergDraft(draft, autoSaveDraft = false) {
             const found = words.filter(word => domainNormalized.includes(normalize(word)));
             const length = found.reduce((sum, word) => sum + word.length, 0);
             // A multi-word store-name match outranks a single shared word.
-            const score = found.length >= 2 ? 1000 + length : found.length === 1 ? 100 + length : 0;
+            const compactMatch = isCompactDomainMatch(phrase);
+            const score = found.length >= 2 ? 2000 + length : compactMatch ? 1500 + compactSlugName(phrase).length : found.length === 1 ? 100 + length : 0;
             return { score, found };
           }).sort((a, b) => b.score - a.score);
           return { user, bestMatch: matches[0] || { score: 0, found: [] } };
@@ -696,7 +714,7 @@ async function fillGutenbergDraft(draft, autoSaveDraft = false) {
         log(`No WordPress user's name resembles the domain "${domainName}" closely enough to auto-select an author.`);
         return null;
       }
-      log(`Matched author "${scored[0].user.name}" to domain "${domainName}" (matched name parts: ${scored[0].bestMatch.found.join(', ')}).`);
+      log(`Matched WordPress author "${scored[0].user.name}" (${scored[0].user.slug || scored[0].user.id}) to domain "${domainName}" (matched name parts: ${scored[0].bestMatch.found.join(', ') || 'compact author slug'}).`);
       return scored[0].user;
     } catch (error) {
       log('Could not fetch/match WordPress users for author selection:', error.message);
@@ -756,8 +774,16 @@ async function fillGutenbergDraft(draft, autoSaveDraft = false) {
     await new Promise(resolve => setTimeout(resolve, 200)); // let the now-visible #authordiv box mount
     const authorSelect = document.querySelector('#post_author_override');
     if (author && authorSelect) {
-      authorSelect.value = String(author.id);
-      authorSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      const authorOption = [...authorSelect.options].find(option => option.value === String(author.id));
+      if (authorOption) {
+        authorSelect.value = String(author.id);
+        authorSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        log(`Classic Editor author selected: ${authorOption.textContent.trim()} (${author.slug || author.id}).`);
+      } else {
+        log(`Matched WordPress author ${author.slug || author.id}, but it is missing from the Classic Editor author dropdown; author was not silently reported as selected.`);
+      }
+    } else if (author) {
+      log(`Matched WordPress author ${author.slug || author.id}, but the Classic Editor author dropdown (#post_author_override) is unavailable.`);
     }
     if (window.tinymce?.get('content')) {
       window.tinymce.get('content').setContent(draft.content || '');
@@ -838,6 +864,7 @@ async function fillGutenbergDraft(draft, autoSaveDraft = false) {
     ...(draft.featuredMediaId ? { featured_media: draft.featuredMediaId } : {}),
     ...(author?.id ? { author: author.id } : {})
   });
+  if (author?.id) log(`Gutenberg author set to ${author.name} (${author.slug || author.id}); WordPress will save it with the draft.`);
 
   // Recent Yoast versions keep the snippet editor in their own data store.
   // Updating only WordPress's `core/editor` meta can be overwritten by Yoast

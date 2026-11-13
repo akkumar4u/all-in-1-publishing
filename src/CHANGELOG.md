@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.70 (Horizon) — Build publishing payloads privately and fix Blog authors
+- Move page and Blog template/content payload generation to the authenticated Vercel API; keep Salesforce, Google Docs access, images, and WordPress draft creation in the extension.
+- Exclude page template generators from the installable extension package.
+- Improve Blog author matching for compact WordPress slugs such as `championcadillac_author` on domains such as `championjccadillac.com`.
+- Log whether the matched author was actually selected in Classic Editor or assigned in Gutenberg.
+
 ## 1.9.61 (Horizon) — Verify button URLs on the private server
 - Send Button Code and its dealer website to the authenticated Vercel endpoint for HTTP status and redirect checks.
 - Keep the extension's local checker as a fallback if the private endpoint cannot be reached.

@@ -8,6 +8,22 @@ async function settings() {
   };
 }
 
+export async function buildPublishingPayload(payload = {}) {
+  const config = await settings();
+  requireConfig(config);
+  let response;
+  try {
+    response = await fetch(config.url + '/api/build-payload', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': config.key },
+      body: JSON.stringify(payload), cache: 'no-store',
+    });
+  } catch { throw new Error('Could not reach the private page builder. Check Bulk dashboard → Settings and try again.'); }
+  let data = {};
+  try { data = await response.json(); } catch { /* handled below */ }
+  if (!response.ok || !data.ok || !data.result) throw new Error(data.error || ('Private page builder failed (HTTP ' + response.status + ').'));
+  return data.result;
+}
+
 function requireConfig(config) {
   if (!config.url || !config.key) {
     throw new Error('Set the private Vercel server URL and access key in Bulk dashboard → Settings first.');

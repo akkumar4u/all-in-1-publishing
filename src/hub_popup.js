@@ -34,6 +34,7 @@ const landingParent = document.querySelector('#landing-parent');
 const landingParentCustom = document.querySelector('#landing-parent-custom');
 const landingBottom = document.querySelector('#landing-bottom');
 const group1Ticket = document.querySelector('#sf-group1');
+const buildPublishingPayload = async payload => (await import('./core/private_api.js')).buildPublishingPayload(payload);
 group1Ticket?.addEventListener('change', () => { if (group1Ticket.checked) landingBottom.value = 'form'; });
 let vrpPageMode = window.__vrpPageMode || { active: false };
 const getVrpMode = () => window.__vrpPageMode || vrpPageMode;
@@ -424,7 +425,7 @@ const withLinkRules = (html, adminValue) => {
 };
 
 /* ── Generate preview ── */
-generateBtn.addEventListener('click', () => {
+generateBtn.addEventListener('click', async () => {
   const type = hubType.value;
   const brand = brandName.value.trim();
 
@@ -448,7 +449,7 @@ generateBtn.addEventListener('click', () => {
   }
 
   try {
-    const hub = generateHub(type, {
+    const built = await buildPublishingPayload({ kind:'hub', hubType:type, inputs:{
       brandName: brand,
       serviceSpecialsUrl: serviceSpecialsUrl.value.trim() || '/service-specials/',
       partsSpecialsUrl: partsSpecialsUrl.value.trim() || '/parts-specials/',
@@ -469,7 +470,8 @@ generateBtn.addEventListener('click', () => {
       ctaBodyContent: withLinkRules(comparisonCtaBody.value.trim(), admin),
       compareRows: importedCompareRows,
       ctaButtonsHtml: comparisonButtonCode?.value ?? importedCompareButtons,
-    });
+    } });
+    const hub = built.hub;
 
     hub.adminUrl = admin;
 
@@ -489,7 +491,7 @@ generateBtn.addEventListener('click', () => {
 });
 
 /* ── Generate a Google-Doc-backed Comparison or Landing page ── */
-publishingGenerateBtn.addEventListener('click', () => {
+publishingGenerateBtn.addEventListener('click', async () => {
   const selectedType = publishingType.value;
   const isVrp = selectedType === 'vrp' || vrpActive();
   const type = selectedType === 'vrp' ? 'landing' : selectedType;
@@ -509,23 +511,20 @@ publishingGenerateBtn.addEventListener('click', () => {
     return;
   }
   try {
-    const hub = generateHub(type, {
-      pageTitle: comparisonPageTitle.value.trim(),
-      pageSlug: comparisonPageSlug.value.trim(),
-      comparisonMetaTitle: comparisonMetaTitle.value.trim(),
-      comparisonMetaDescription: comparisonMetaDescription.value.trim(),
-      ctaLearnMoreUrl: comparisonLearnMoreUrl.value.trim(),
-      ctaInventoryUrl: comparisonInventoryUrl.value.trim(),
-      vehicleName: comparisonVehicleName.value.trim(),
-      ctaBodyContent: withLinkRules(comparisonCtaBody.value.trim(), admin),
-      compareRows: importedCompareRows,
-      ctaButtonsHtml: comparisonButtonCode?.value ?? importedCompareButtons,
-      landingParent: (type === 'landing' || type === 'comparison') ? resolveLandingParent() : '',
-      templateName: isVrp ? 'Lightning' : undefined,
-      vrpSeoContent: isVrp,
-      landingBottom: landingBottom.value,
-      landingImage: (type === 'landing' || type === 'comparison') && window.__diGetLandingImage ? window.__diGetLandingImage() : null,
+    const image = (type === 'landing' || type === 'comparison') && window.__diGetLandingImage ? window.__diGetLandingImage() : null;
+    const built = await buildPublishingPayload({
+      kind:'page', adminUrl:admin, pageKind:type, isVrp,
+      parent:(type === 'landing' || type === 'comparison') ? resolveLandingParent() : '',
+      landingBottom:landingBottom.value,
+      doc:{ title:comparisonPageTitle.value.trim(), pageSlug:comparisonPageSlug.value.trim(), metaTitle:comparisonMetaTitle.value.trim(),
+        metaDescription:comparisonMetaDescription.value.trim(), bodyHtml:withLinkRules(comparisonCtaBody.value.trim(), admin),
+        compareRows:importedCompareRows, buttons:comparisonButtonCode?.value ?? importedCompareButtons },
     });
+    const hub = built.hub;
+    if (image) {
+      const imageSection = hub.sections?.find(section => section.id === 'landingimage');
+      if (imageSection) imageSection.image = { ...image, filename:hub.slug || image.filename };
+    }
     const vrpMode = getVrpMode();
     if (isVrp && vrpMode.pageAction === 'existing') {
       if (!vrpMode.existingPageUrl || !vrpMode.selectedPageUrl) {
