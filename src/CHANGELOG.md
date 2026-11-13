@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.72 (Horizon) — Make the Blog CTA box editable
+- Remove the read-only lock from the Blog Button Code / CTA field in the extension popup.
+- Save edits to the queued Blog draft, refresh the button preview, and automatically recheck destinations.
+- Preserve the user-selected article content while replacing CTA links in the queued post.
+
 ## 1.9.71 (Horizon) — Edit Blog CTA destinations in review
 - Show each imported Blog CTA as editable button text and destination URL fields in the Bulk review screen.
 - Automatically refresh button URL checks when a CTA is edited; add and remove CTA buttons without editing HTML.

@@ -23,6 +23,8 @@ const contentSelectionItems = document.querySelector('#blog-content-selection-it
 let importedContentBlocks = [];
 let activeBlogCtaDraft = null;
 let blogCtaCheckId = 0;
+let blogCtaSaveTimer = 0;
+let blogCtaCheckTimer = 0;
 const importedFields = [
   ['Meta title', 'metaTitle'],
   ['Meta description', 'metaDescription'],
@@ -144,6 +146,30 @@ async function checkBlogButtonUrls() {
 }
 
 blogButtonCheck.addEventListener('click', checkBlogButtonUrls);
+blogButtonCode.addEventListener('input', () => {
+  const code = blogButtonCode.value;
+  renderBlogButtonPreview(code, activeBlogCtaDraft?.adminUrl || adminUrl.value || '');
+  blogButtonSummary.textContent = 'Saving CTA changes…';
+  blogButtonSummary.className = '';
+  clearTimeout(blogCtaSaveTimer);
+  clearTimeout(blogCtaCheckTimer);
+  blogCtaSaveTimer = setTimeout(() => {
+    chrome.runtime.sendMessage({ type: 'UPDATE_PENDING_DRAFT_BUTTONS', buttons: code }, response => {
+      if (!response?.ok) {
+        blogButtonSummary.textContent = response?.error || 'Could not save CTA changes.';
+        blogButtonSummary.className = 'error';
+        return;
+      }
+      if (activeBlogCtaDraft) {
+        activeBlogCtaDraft.buttons = code;
+        activeBlogCtaDraft.content = response.content || activeBlogCtaDraft.content;
+      }
+      blogButtonSummary.textContent = code.trim() ? 'CTA changes saved · checking URLs…' : 'CTA changes saved · no buttons';
+      blogButtonSummary.className = code.trim() ? '' : 'warn';
+    });
+  }, 300);
+  blogCtaCheckTimer = setTimeout(checkBlogButtonUrls, 500);
+});
 
 function splitContentBlocks(html) {
   const root = new DOMParser().parseFromString(`<div id="content-root">${html || ''}</div>`, 'text/html')

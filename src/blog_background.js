@@ -167,6 +167,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message?.type === 'UPDATE_PENDING_DRAFT_BUTTONS') {
+    chrome.storage.local.get([DRAFT_KEY, STATUS_KEY]).then(async stored => {
+      const draft = stored[DRAFT_KEY];
+      if (!draft) throw new Error('No blog draft is queued. Import the Google Doc again first.');
+      if (stored[STATUS_KEY]?.filled) throw new Error('This draft was already filled. Clear it before changing its CTA buttons.');
+      draft.buttons = String(message.buttons || '');
+      // Preserve any article sections the user selected/edited in the content
+      // review. Replace only the existing CTA anchors, then put the edited CTAs
+      // after the first paragraph.
+      let content = String(draft.content || draft.bodyHtml || '');
+      content = content.replace(/<a\b(?=[^>]*\bclass\s*=\s*["'][^"']*\b(?:button|primary-button)\b)[^>]*>[\s\S]*?<\/a>/gi, '');
+      content = content.replace(/<div\b[^>]*class\s*=\s*["'][^"']*(?:text-center|center)[^"']*["'][^>]*>\s*<\/div>/gi, '');
+      const buttons = String(draft.buttons || '').replace(/<\/a>\s*<a\b/gi, '</a> <a').trim();
+      if (buttons) {
+        const firstParagraphEnd = content.indexOf('</p>');
+        content = firstParagraphEnd < 0
+          ? `${buttons}\n\n${content}`.trim()
+          : `${content.slice(0, firstParagraphEnd + 4)}\n\n${buttons}\n\n${content.slice(firstParagraphEnd + 4)}`.trim();
+      }
+      draft.content = prettifyHtml(content);
+      await chrome.storage.local.set({ [DRAFT_KEY]: draft });
+      sendResponse({ ok: true, content: draft.content });
+    }).catch(error => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
   if (message?.type === 'CLEAR_PENDING_DRAFT') {
     chrome.storage.local.remove([DRAFT_KEY, TARGET_TAB_KEY, STATUS_KEY, AUTO_SAVE_KEY, BLOG_IMAGE_KEY, 'diBlogImageAlt', 'diBlogHeld'])
       .then(() => sendResponse({ ok: true }))
