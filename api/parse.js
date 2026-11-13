@@ -35,8 +35,9 @@ module.exports = async function handler(req, res) {
     const result = parseGoogleDoc(type, sourceHtml, ownHost);
     return res.status(200).json({ ok: true, result });
   } catch (error) {
-    console.error('Private document parsing failed:', error?.name || 'parser error');
-    return res.status(422).json({ ok: false, error: 'The Google Doc could not be parsed. Check the document and try again.' });
+    const reason = String(error?.code || error?.name || 'PARSER_ERROR').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+    console.error('Private document parsing failed:', reason);
+    return res.status(422).json({ ok: false, error: `The Google Doc parser failed (${reason}). Check the Vercel parser files and try again.` });
   }
 };
 
