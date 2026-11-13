@@ -1,6 +1,6 @@
-/* "Clear all" button at the top of the popup: wipes everything the extension remembers
- * (form values, imported doc, Salesforce result, image + time log, saved URLs, run flags),
- * closes any helper image-library window, then reloads the popup completely blank. */
+/* "Clear all" removes temporary publishing/session data while preserving Bulk dashboard
+ * connection settings (including the private Vercel URL/key and sheet credentials).
+ * It also closes any helper image-library window, then reloads the popup blank. */
 (function () {
   const btn = document.getElementById('clear-all');
   if (!btn) return;
@@ -18,7 +18,9 @@
         if (others.length) { if (held[k].tabId) await chrome.tabs.remove(held[k].tabId).catch(() => {}); }
         else await chrome.windows.remove(w.id).catch(() => {});
       }
+      const savedSettings = (await chrome.storage.local.get('bulkSettings')).bulkSettings;
       await chrome.storage.local.clear();
+      if (savedSettings) await chrome.storage.local.set({ bulkSettings: savedSettings });
       await chrome.storage.session.clear();
       try { localStorage.clear(); sessionStorage.clear(); } catch (e) { /* ignore */ }
     } catch (e) { /* reload anyway */ }

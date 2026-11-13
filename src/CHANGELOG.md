@@ -206,6 +206,10 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.68 (Horizon) — Keep connection settings on Clear all
+- Clear all now preserves Bulk dashboard settings, including the private Vercel URL/access key and sheet connection, while clearing temporary ticket, image, form, and session data.
+- Files: src/clear_all.js, src/manifest.json
+
 ## 1.9.67 (Horizon) — Normalize image choice cards
 - Keep Cloudinary and Dealer Inspire image candidates in equal-width, shrink-safe grid cards with consistent thumbnail height and readable, two-line filenames.
 - Display filenames with spaces instead of underscores/hyphens while retaining the original image title for selection/download.
