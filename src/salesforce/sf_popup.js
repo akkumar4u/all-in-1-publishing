@@ -30,7 +30,6 @@ const taskNote = $('sf-task-note');
 const applyBtn = $('sf-apply');
 const logEl = $('sf-log');
 const logText = $('sf-log-text');
-const reviewDetails = $('sf-review-details');
 
 let current = null;            // latest lookup state
 let appliedThisPopup = false;
@@ -262,7 +261,6 @@ function render(state, { allowApply }) {
   if (state.status !== 'done') return;
 
   resultEl.hidden = false;
-  if (reviewDetails) reviewDetails.open = !(state.applied || appliedThisPopup);
   renderSummary(state);
   renderTask(state);
   const key = state.ticket + '|' + (state.docUrls || []).join(',') + '|' + (state.website || '');
@@ -309,7 +307,6 @@ applyBtn.addEventListener('click', () => {
     group1: { ...(current.group1 || {}), is: group1Box.checked } };
   appliedThisPopup = true;
   applyTask(state, taskSelect.value, chosenDoc());
-  if (reviewDetails) reviewDetails.open = false;
 });
 
 $('sf-manual').addEventListener('click', () => {

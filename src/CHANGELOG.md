@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.60 (Horizon) — Keep ticket edit details visible
+- Keep the Review / edit ticket details section open after applying a Salesforce ticket; users can still collapse it manually.
+- Preserve the per-ticket auto-save and Group 1 correction stability added in 1.9.59.
+
 ## 1.9.59 (Horizon) — Save Salesforce review edits
 - Keep a manually corrected Group 1 value and task type stable when Salesforce lookup updates arrive.
 - Auto-save ticket-specific Google Doc, website, WordPress admin URL, Group 1, and task type edits for the current browser session.
