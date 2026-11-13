@@ -57,6 +57,8 @@
           <p id="sf-status" role="status"></p>
           <div id="sf-result" hidden>
             <dl id="sf-summary"></dl>
+            <details id="sf-review-details" open>
+              <summary>Review / edit ticket details <small>(changes save automatically)</small></summary>
             <div id="sf-fields">
               <label>Google Doc <small>(auto-picked — change if needed)</small>
                 <select id="sf-doc-select"></select>
@@ -101,6 +103,7 @@
               <p id="sf-task-note"></p>
               <button id="sf-apply" class="btn-secondary" type="button">Apply to form</button>
             </div>
+            </details>
           </div>
           <button id="sf-manual" type="button">Work without a ticket (manual)</button>
           <details id="sf-log" hidden><summary>Lookup details</summary><pre id="sf-log-text"></pre></details>

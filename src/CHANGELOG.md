@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.59 (Horizon) — Save Salesforce review edits
+- Keep a manually corrected Group 1 value and task type stable when Salesforce lookup updates arrive.
+- Auto-save ticket-specific Google Doc, website, WordPress admin URL, Group 1, and task type edits for the current browser session.
+- Collapse ticket review fields after Apply; reopen them from “Review / edit ticket details” when a correction is needed.
+
 ## 1.9.58 (Horizon) — Move Google Doc parsing to the private Vercel API
 - Run Hub/Landing/Comparison/VRP and Blog Google Doc parsing on the Vercel server, using the same parser source from the private repository.
 - Store the server URL and owner access key in local extension settings; do not embed the key in the extension package.

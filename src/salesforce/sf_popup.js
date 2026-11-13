@@ -9,6 +9,7 @@ import { resolveWebsiteRedirect } from '../bulk/pipeline.js';
 
 const $ = id => document.getElementById(id);
 const STATE_KEY = 'sfLookupState';
+const OVERRIDES_KEY = 'sfReviewOverrides';
 
 const ticketInput = $('sf-ticket');
 const runBtn = $('sf-run');
@@ -29,12 +30,38 @@ const taskNote = $('sf-task-note');
 const applyBtn = $('sf-apply');
 const logEl = $('sf-log');
 const logText = $('sf-log-text');
+const reviewDetails = $('sf-review-details');
 
 let current = null;            // latest lookup state
 let appliedThisPopup = false;
 let fieldsFor = null;          // which lookup the editable fields were filled from
 let redirectCheckId = 0;
 let detectedRedirect = '';
+let reviewOverrides = {};
+
+function mergeReviewOverrides(state) {
+  if (!state?.ticket) return state;
+  const edit = reviewOverrides[String(state.ticket)];
+  if (!edit) return state;
+  const merged = { ...state };
+  if (Object.hasOwn(edit, 'website')) merged.website = edit.website;
+  if (Object.hasOwn(edit, 'adminUrl')) merged.adminUrl = edit.adminUrl;
+  if (Object.hasOwn(edit, 'docUrl')) {
+    merged.docUrls = edit.docUrl ? [edit.docUrl] : [];
+    merged.docs = edit.docUrl ? [{ url: edit.docUrl, label: 'Saved Doc' }] : [];
+  }
+  if (edit.group1) merged.group1 = { ...(state.group1 || {}), ...edit.group1 };
+  if (edit.task) merged.task = { ...(state.task || {}), ...edit.task };
+  return merged;
+}
+
+function saveReviewOverride(patch) {
+  if (!current?.ticket) return;
+  const ticket = String(current.ticket);
+  reviewOverrides[ticket] = { ...(reviewOverrides[ticket] || {}), ...patch };
+  chrome.storage.session.set({ [OVERRIDES_KEY]: reviewOverrides });
+  current = mergeReviewOverrides(current);
+}
 
 function setStatus(text, kind) {
   statusEl.textContent = text || '';
@@ -170,7 +197,12 @@ function renderFields(state) {
 }
 
 const chosenDoc = () => docCustom.value.trim() || null;
-docSelect.addEventListener('change', () => { docCustom.value = docSelect.value || ''; });
+docSelect.addEventListener('change', () => {
+  docCustom.value = docSelect.value || '';
+  saveReviewOverride({ docUrl: docCustom.value.trim() });
+});
+docCustom.addEventListener('input', () => saveReviewOverride({ docUrl: docCustom.value.trim() }));
+adminInput.addEventListener('input', () => saveReviewOverride({ adminUrl: adminInput.value.trim() }));
 
 // Editing the website re-derives the admin URL (the admin box can still be edited after that).
 websiteInput.addEventListener('input', () => {
@@ -180,6 +212,7 @@ websiteInput.addEventListener('input', () => {
   if (!v) { adminInput.value = ''; return; }
   if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
   try { adminInput.value = new URL(v).origin + SF_CONFIG.wpAdminPath; } catch { /* still typing */ }
+  saveReviewOverride({ website: websiteInput.value.trim(), adminUrl: adminInput.value.trim() });
   clearTimeout(websiteInput._redirectTimer);
   websiteInput._redirectTimer = setTimeout(() => checkWebsiteRedirect(websiteInput.value), 650);
 });
@@ -211,6 +244,7 @@ useRedirectBtn.addEventListener('click', () => {
 });
 
 function render(state, { allowApply }) {
+  state = mergeReviewOverrides(state);
   current = state;
   if (state?.applied) document.body.classList.add('sf-applied');
   if (!state) { setStatus(''); resultEl.hidden = true; logEl.hidden = true; return; }
@@ -228,6 +262,7 @@ function render(state, { allowApply }) {
   if (state.status !== 'done') return;
 
   resultEl.hidden = false;
+  if (reviewDetails) reviewDetails.open = !(state.applied || appliedThisPopup);
   renderSummary(state);
   renderTask(state);
   const key = state.ticket + '|' + (state.docUrls || []).join(',') + '|' + (state.website || '');
@@ -258,6 +293,13 @@ group1Box.addEventListener('change', () => {
   const task = classifyTask({ subject: current.subject, group1: group1Box.checked });
   taskSelect.value = task.key || '';
   taskNote.textContent = task.reason;
+  saveReviewOverride({ group1: { ...(current.group1 || {}), is: group1Box.checked }, task });
+});
+
+taskSelect.addEventListener('change', () => {
+  if (!current) return;
+  const task = classifyTask({ subject: current.subject, group1: group1Box.checked });
+  saveReviewOverride({ task: { ...task, key: taskSelect.value } });
 });
 
 applyBtn.addEventListener('click', () => {
@@ -267,6 +309,7 @@ applyBtn.addEventListener('click', () => {
     group1: { ...(current.group1 || {}), is: group1Box.checked } };
   appliedThisPopup = true;
   applyTask(state, taskSelect.value, chosenDoc());
+  if (reviewDetails) reviewDetails.open = false;
 });
 
 $('sf-manual').addEventListener('click', () => {
@@ -281,6 +324,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 // On open: show the last result. Wait briefly so the form's own "restore saved values" step
 // finishes first and can't overwrite what we fill in.
-chrome.runtime.sendMessage({ type: 'SF_GET_STATE' }, res => {
-  setTimeout(() => render(res?.state, { allowApply: true }), 500);
-});
+Promise.all([chrome.storage.session.get(OVERRIDES_KEY), new Promise(resolve => chrome.runtime.sendMessage({ type: 'SF_GET_STATE' }, resolve))])
+  .then(([stored, res]) => {
+    reviewOverrides = stored[OVERRIDES_KEY] || {};
+    setTimeout(() => render(res?.state, { allowApply: true }), 500);
+  });
