@@ -264,7 +264,19 @@ async function verifyButtonUrlsLocally(buttonsHtml, websiteUrl) {
 }
 
 export async function verifyButtonUrls(buttonsHtml, websiteUrl) {
-  try { return await verifyButtonUrlsOnPrivateServer(buttonsHtml, websiteUrl); }
+  try {
+    const serverChecks = await verifyButtonUrlsOnPrivateServer(buttonsHtml, websiteUrl);
+    const inconclusive = serverChecks.some(check => !check.ok && check.level === 'warn' && /HTTP (?:401|403|408|429|5\d\d)\b|Could not verify/i.test(check.detail || ''));
+    if (!inconclusive) return serverChecks;
+    // Some dealer WAFs block Vercel's outbound IP while the user's logged-in Chrome can reach the same public URL.
+    // Recheck those links from the extension's browser context and prefer only a conclusive local result.
+    const localChecks = await verifyButtonUrlsLocally(buttonsHtml, websiteUrl);
+    const byName = new Map(localChecks.map(check => [check.name, check]));
+    return serverChecks.map(check => {
+      const local = byName.get(check.name);
+      return local && (local.ok || local.level === 'error') ? local : check;
+    });
+  }
   catch { return verifyButtonUrlsLocally(buttonsHtml, websiteUrl); }
 }
 export function analyse(html, adminUrl) {

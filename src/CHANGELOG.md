@@ -206,6 +206,11 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.66 (Horizon) — Check blocked links from the user's browser
+- If the private server gets an inconclusive 401/403/rate-limit/server response, retry the URL from the extension's browser context. Prefer a local success or confirmed local error; preserve an unconfirmed warning when Chrome cannot confirm either way.
+- This covers Hub, Blog, Landing, Comparison, and Bulk button checks through their shared verifier.
+- Files: src/bulk/pipeline.js, src/manifest.json
+
 ## 1.9.65 (Horizon) — Retry button checks blocked by HEAD
 - Use a browser-like request header for button URL checks and retry GET when HEAD receives 401/403/405/501, since some dealership sites block HEAD while serving the page normally.
 - A remaining 403 stays “could not be confirmed”; it is never presented as proof the URL is broken.
