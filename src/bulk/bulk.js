@@ -77,6 +77,52 @@ function detailParentSelect(row, ticket) {
 function summaryField(label, value, extra = '') {
   return `<div class="ticket-summary-field ${extra}"><span>${esc(label)}</span><div>${value}</div></div>`;
 }
+function blogCtaLinks(markup) {
+  const source = normalizeButtonMarkup(markup || '');
+  const doc = new DOMParser().parseFromString(source, 'text/html');
+  return [...doc.querySelectorAll('a[href]')].map(anchor => ({
+    label: (anchor.textContent || '').replace(/\s+/g, ' ').trim(),
+    href: (anchor.getAttribute('href') || '').trim(),
+    className: anchor.getAttribute('class') || 'button primary-button',
+  }));
+}
+function blogCtaMarkup(links) {
+  const anchors = links.filter(link => link.href.trim() || link.label.trim()).map(link =>
+    `<a class="${esc(link.className || 'button primary-button')}" href="${esc(link.href.trim())}">${esc(link.label.trim())}</a>`
+  );
+  return anchors.length ? `<div class="text-center">${anchors.join(' ')}</div>` : '';
+}
+function renderBlogCtaEditor(markup) {
+  const host = $('review-cta-links');
+  if (!host) return;
+  const links = blogCtaLinks(markup);
+  host.replaceChildren();
+  if (!links.length) {
+    const note = document.createElement('p'); note.className = 'muted'; note.textContent = 'No CTA links found. Add one below or fetch the Google Doc again.'; host.append(note);
+  }
+  const sync = () => {
+    const current = [...host.querySelectorAll('.blog-cta-row')].map(row => ({
+      label: row.querySelector('[data-cta-label]')?.value || '',
+      href: row.querySelector('[data-cta-href]')?.value || '',
+      className: row.dataset.className || 'button primary-button',
+    }));
+    const code = $('review-button-code');
+    if (code) { code.value = blogCtaMarkup(current); code.dispatchEvent(new Event('input', { bubbles: true })); }
+  };
+  links.forEach((link, index) => {
+    const row = document.createElement('div'); row.className = 'blog-cta-row'; row.dataset.className = link.className;
+    const label = document.createElement('label'); label.textContent = `Button ${index + 1} text`;
+    const labelInput = document.createElement('input'); labelInput.type = 'text'; labelInput.value = link.label; labelInput.dataset.ctaLabel = '';
+    label.append(labelInput);
+    const url = document.createElement('label'); url.textContent = 'Destination URL';
+    const urlInput = document.createElement('input'); urlInput.type = 'text'; urlInput.value = link.href; urlInput.placeholder = '/contact-us/ or https://…'; urlInput.dataset.ctaHref = '';
+    url.append(urlInput);
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove CTA button ${index + 1}`);
+    row.append(label, url, remove); host.append(row);
+    labelInput.addEventListener('input', sync); urlInput.addEventListener('input', sync);
+    remove.addEventListener('click', () => { row.remove(); sync(); renderBlogCtaEditor($('review-button-code')?.value || ''); });
+  });
+}
 function websiteCellHtml(row, ticket) {
   const pkg = state.cache.get(normTicket(ticket))?.pkg;
   const redirect = String(row['Website Redirect'] || pkg?.websiteRedirect || '').trim();
@@ -288,7 +334,7 @@ async function renderDetail(ticket) {
       <label>Slug<input id="review-slug" value="${esc(r.Slug || '')}"></label>
       <label>Meta title<input id="review-meta-title" value="${esc(r['Meta Title'] || '')}"></label>
       <label>Meta description<textarea id="review-meta-description" rows="2">${esc(r['Meta Description'] || '')}</textarea></label>
-      <label class="review-button-code">Button Code / CTA<textarea id="review-button-code" rows="3" placeholder="Button HTML from the Google Doc">${esc(imp?.buttonsHtml || '')}</textarea><ol id="review-button-checks" class="button-checks">${checks.filter(c => c.name.startsWith('Button URL — ')).map((c,i) => `<li class="${c.level}"><b>${i+1}.</b> ${c.ok ? '✔' : c.level === 'error' ? '✖' : '!'} ${esc(c.name.replace('Button URL — ',''))} — ${esc(c.detail || (c.ok ? 'working' : 'needs attention'))}</li>`).join('') || '<li class="muted">No CTA URLs to check.</li>'}</ol></label>
+      ${isBlog ? `<div class="review-button-code blog-cta-editor"><b>CTA buttons from the Google Doc</b><p class="muted">Edit each button’s text or destination. URL checks update automatically.</p><div id="review-cta-links"></div><button id="review-cta-add" class="btn" type="button">+ Add CTA button</button><details class="cta-raw-code"><summary>Advanced: edit button HTML</summary><textarea id="review-button-code" rows="3" placeholder="Button HTML from the Google Doc">${esc(imp?.buttonsHtml || '')}</textarea></details><ol id="review-button-checks" class="button-checks">${checks.filter(c => c.name.startsWith('Button URL — ')).map((c,i) => `<li class="${c.level}"><b>${i+1}.</b> ${c.ok ? '✔' : c.level === 'error' ? '✖' : '!'} ${esc(c.name.replace('Button URL — ',''))} — ${esc(c.detail || (c.ok ? 'working' : 'needs attention'))}</li>`).join('') || '<li class="muted">No CTA URLs to check.</li>'}</ol></div>` : `<label class="review-button-code">Button Code / CTA<textarea id="review-button-code" rows="3" placeholder="Button HTML from the Google Doc">${esc(imp?.buttonsHtml || '')}</textarea><ol id="review-button-checks" class="button-checks">${checks.filter(c => c.name.startsWith('Button URL — ')).map((c,i) => `<li class="${c.level}"><b>${i+1}.</b> ${c.ok ? '✔' : c.level === 'error' ? '✖' : '!'} ${esc(c.name.replace('Button URL — ',''))} — ${esc(c.detail || (c.ok ? 'working' : 'needs attention'))}</li>`).join('') || '<li class="muted">No CTA URLs to check.</li>'}</ol></label>`}
     </div><div class="review-editor-label">Content (edit or remove text)</div><iframe id="review-content-editor" class="review-frame editable" scrolling="auto" title="Editable imported content" sandbox="allow-same-origin"></iframe>
     </section>
     </div>
@@ -302,6 +348,18 @@ async function renderDetail(ticket) {
     <h3>Timing</h3><div class="muted">Salesforce ${esc(r['Salesforce Secs'] || '—')}s · Doc ${esc(r['Doc Secs'] || '—')}s · Total ${esc(r['Total Secs'] || '—')}s</div>`;
   const frame = $('review-content-editor');
   const buttonCodeInput = $('review-button-code');
+  if (isBlog && buttonCodeInput) {
+    renderBlogCtaEditor(buttonCodeInput.value);
+    $('review-cta-add')?.addEventListener('click', () => {
+      const current = blogCtaLinks(buttonCodeInput.value);
+      current.push({ label: '', href: '', className: 'button primary-button' });
+      buttonCodeInput.value = blogCtaMarkup(current);
+      renderBlogCtaEditor(buttonCodeInput.value);
+      buttonCodeInput.dispatchEvent(new Event('input', { bubbles: true }));
+      const inputs = $('review-cta-links')?.querySelectorAll('[data-cta-label]');
+      inputs?.[inputs.length - 1]?.focus();
+    });
+  }
   if (buttonCodeInput) {
     let checkTimer;
     let checkRun = 0;
@@ -317,6 +375,7 @@ async function renderDetail(ticket) {
         : (buttonCodeInput.value.trim() ? '<li class="error">No <a href="…"> button link found in this code.</li>' : '<li class="muted">No CTA buttons in the Google Doc.</li>');
     };
     buttonCodeInput.addEventListener('input', () => { clearTimeout(checkTimer); checkTimer = setTimeout(updateChecks, 350); });
+    if (isBlog) buttonCodeInput.addEventListener('change', () => renderBlogCtaEditor(buttonCodeInput.value));
   }
   if ($('review-doc-url')) $('review-doc-url').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('detail').querySelector('[data-act=import-doc]')?.click(); } });
   if (frame) { frame.srcdoc = '<!doctype html><meta charset="utf-8"><style>body{font:15px/1.55 system-ui,sans-serif;color:#222;padding:14px;outline:none}body *{color:#222!important}span[style*=background],mark{background:transparent!important}a{color:#0b5a4a!important}</style>' + content; frame.addEventListener('load', () => { try { frame.contentDocument.body.contentEditable = 'true'; frame.contentDocument.designMode = 'on'; } catch {} if (state.selected !== t) return; window.__bulkLinkDispose?.(); window.__bulkLinkDispose = initInternalLinks({ panelId:'bulk-il-panel', listId:'bulk-il-list', statusId:'bulk-il-status', rescanId:'bulk-il-rescan', slugId:'review-slug', adminUrlId:'bulk-il-admin-url', event:'bulk:doc-imported', transformHook:'__bulkILTransform', resyncFn:'__bulkILResync' }); document.dispatchEvent(new CustomEvent('bulk:doc-imported', { detail:{ bodyHtml:content, adminUrl:$('bulk-il-admin-url')?.value || '' } })); }, { once: true }); }

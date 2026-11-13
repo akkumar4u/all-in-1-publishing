@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.71 (Horizon) — Edit Blog CTA destinations in review
+- Show each imported Blog CTA as editable button text and destination URL fields in the Bulk review screen.
+- Automatically refresh button URL checks when a CTA is edited; add and remove CTA buttons without editing HTML.
+- Keep an advanced HTML editor available and save the edited CTA markup with the review and draft.
+
 ## 1.9.70 (Horizon) — Build publishing payloads privately and fix Blog authors
 - Move page and Blog template/content payload generation to the authenticated Vercel API; keep Salesforce, Google Docs access, images, and WordPress draft creation in the extension.
 - Exclude page template generators from the installable extension package.
