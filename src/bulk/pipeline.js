@@ -5,6 +5,7 @@
  * so a ticket fetched here is the same page you would get from the side panel. */
 import { classifyTask, TASK_TYPES } from '../salesforce/sf_classify.js';
 import { checkPage } from '../links/il_core.js';
+import { verifyButtonUrlsOnPrivateServer } from '../core/private_api.js';
 
 const send = msg => new Promise(resolve => chrome.runtime.sendMessage(msg, r => resolve(r || { ok: false, error: chrome.runtime.lastError?.message || 'The extension did not answer.' })));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -220,7 +221,7 @@ export function composeBlogContent(bodyHtml = '', buttonsHtml = '', imageShortco
   return [shortcode, article, feed].filter(Boolean).join('\n\n');
 }
 
-export async function verifyButtonUrls(buttonsHtml, websiteUrl) {
+async function verifyButtonUrlsLocally(buttonsHtml, websiteUrl) {
   const decoded = decodeButtonMarkup(buttonsHtml);
   const doc = new DOMParser().parseFromString(decoded, 'text/html');
   let anchors = [...doc.querySelectorAll('a.button, a.primary-button, a[class*="button"]')];
@@ -253,6 +254,11 @@ export async function verifyButtonUrls(buttonsHtml, websiteUrl) {
     const status = Number(result.status || 0);
     return { name, ok: false, level: status >= 400 ? 'error' : 'warn', detail: (status ? 'HTTP ' + status : 'Could not verify') + ' · ' + (result.reason || 'request failed') + ' · ' + target };
   })).then(rows => rows.filter(Boolean));
+}
+
+export async function verifyButtonUrls(buttonsHtml, websiteUrl) {
+  try { return await verifyButtonUrlsOnPrivateServer(buttonsHtml, websiteUrl); }
+  catch { return verifyButtonUrlsLocally(buttonsHtml, websiteUrl); }
 }
 export function analyse(html, adminUrl) {
   const root = rootOf(html);

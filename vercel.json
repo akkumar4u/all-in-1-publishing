@@ -7,6 +7,9 @@
     "api/parse.js": {
       "includeFiles": "src/*.js",
       "maxDuration": 30
+    },
+    "api/verify-buttons.js": {
+      "maxDuration": 30
     }
   }
 }

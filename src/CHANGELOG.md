@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.61 (Horizon) — Verify button URLs on the private server
+- Send Button Code and its dealer website to the authenticated Vercel endpoint for HTTP status and redirect checks.
+- Keep the extension's local checker as a fallback if the private endpoint cannot be reached.
+- Do not request external button domains from Vercel; label those links as not checked by the private server.
+
 ## 1.9.60 (Horizon) — Keep ticket edit details visible
 - Keep the Review / edit ticket details section open after applying a Salesforce ticket; users can still collapse it manually.
 - Preserve the per-ticket auto-save and Group 1 correction stability added in 1.9.59.

@@ -7,13 +7,13 @@ This service keeps the Google Docs parsing code in the private GitHub repository
 1. In Vercel, import the private `akkumar4u/all-in-1-publishing` GitHub repository.
 2. Set the project Root Directory to the repository root and the Framework Preset to **Other**.
 3. Add an environment variable named `CONTENT_STUDIO_API_KEY` for Production, Preview, and Development. Generate a long random value locally; never add it to GitHub or the extension source.
-4. Deploy the project. The API health route is `/api/healthz`; document parsing uses `/api/parse`.
+4. Deploy the project. The API health route is `/api/healthz`; document parsing uses `/api/parse`; button status checks use `/api/verify-buttons`.
 5. In the extension, open **Bulk dashboard → Settings**, enter the Vercel deployment URL and the same key, then click **Test private server**.
 
 Pushes to `main` redeploy the Vercel project after the GitHub repository is connected. The GitHub Actions build also creates the installable extension artifact.
 
 ## Data and access
 
-The extension sends exported Google Docs HTML and the dealership hostname to `/api/parse`; it does not send Salesforce ticket numbers, account names, or WordPress credentials to this service. The server does not log document bodies. The access key is saved only in the local Chrome profile and checked against the Vercel environment variable. It is not packaged into the extension.
+The extension sends exported Google Docs HTML and the dealership hostname to `/api/parse`, and Button Code plus the dealer site URL to `/api/verify-buttons`. The button checker only requests URLs on the submitted dealer origin, rejects private/local IP destinations, and reports cross-origin buttons as unchecked. The extension does not send Salesforce ticket numbers, account names, or WordPress credentials to this service. The server does not log document bodies or button markup. The access key is saved only in the local Chrome profile and checked against the Vercel environment variable. It is not packaged into the extension.
 
 The extension build omits `hub_parser.js`, `blog_parser.js`, and `parser.html`; Vercel reads the parser source from the private repository. Chrome-only Salesforce and WordPress automation remains in the extension because it needs the user's active Chrome session. The Vercel endpoint is not a remote JavaScript loader.

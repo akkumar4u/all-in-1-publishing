@@ -49,3 +49,23 @@ export async function parseOnPrivateServer(type, sourceHtml, ownHost = '') {
   if (!response.ok || !data.ok || !data.result) throw new Error(data.error || `Private parser failed (HTTP ${response.status}).`);
   return data.result;
 }
+
+export async function verifyButtonUrlsOnPrivateServer(buttonsHtml, websiteUrl = '') {
+  const config = await settings();
+  requireConfig(config);
+  let response;
+  try {
+    response = await fetch(`${config.url}/api/verify-buttons`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': config.key },
+      body: JSON.stringify({ buttonsHtml, websiteUrl }),
+      cache: 'no-store',
+    });
+  } catch {
+    throw new Error('Could not reach the private button checker.');
+  }
+  let data = {};
+  try { data = await response.json(); } catch { /* handled as a server response error */ }
+  if (!response.ok || !data.ok || !Array.isArray(data.checks)) throw new Error(data.error || `Private button check failed (HTTP ${response.status}).`);
+  return data.checks;
+}
