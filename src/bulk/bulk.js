@@ -2,7 +2,7 @@ import { sheetApi, getSettings, saveSettings, flushPending, pendingCount } from 
 import { runTicket, analyse, prepareImportedDoc, verifyButtonUrls, normalizeButtonMarkup, composeBlogContent, fetchBlogCategories, fetchWebsitePages, chooseParentPage, suggestedBlogCategory, resolveWebsiteRedirect, esc } from './pipeline.js';
 import { initInternalLinks } from '../links/il_popup.js';
 import { TASK_TYPES } from '../salesforce/sf_classify.js';
-import { checkPrivateServer } from '../core/private_api.js';
+import { checkPrivateServer, runPrivateQa } from '../core/private_api.js';
 
 const $ = id => document.getElementById(id);
 const send = msg => new Promise(resolve => chrome.runtime.sendMessage(msg, r => resolve(r || { ok: false, error: chrome.runtime.lastError?.message || 'No answer from the extension.' })));
@@ -439,6 +439,11 @@ async function saveReview(ticket) {
   }
   checks.push({ name:'External links have nofollow', ok:stats.noFollowMissing === 0, level:stats.noFollowMissing?'warn':'ok', detail:stats.noFollowMissing ? stats.noFollowMissing + ' without nofollow' : stats.external + ' external' });
   checks.push(...await verifyButtonUrls(buttonsHtml, row['WP Admin URL'] || row.Website || ''));
+  try {
+    checks.push(...await runPrivateQa({ title, slug, metaTitle, metaDescription, contentHtml:content, buttonsHtml, isVrp:!!pkg.hub?.vrpSeoContent }));
+  } catch (error) {
+    checks.push({ name:'Server QA unavailable', ok:false, level:'warn', detail:error.message || 'Existing local review checks remain available.' });
+  }
   pkg.checks = checks;
   row.Checks = checks.filter(c => !c.ok && c.level === 'error').length + ' errors · ' + checks.filter(c => !c.ok && c.level === 'warn').length + ' warnings';
   row.Status = checks.some(c => c.level === 'error' && !c.ok) ? 'Needs attention' : 'Ready for review';

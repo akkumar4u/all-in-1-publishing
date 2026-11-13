@@ -206,6 +206,11 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.62 (Horizon) — Private server content QA
+- Add authenticated `/api/qa` to check reviewed payloads server-side for required metadata, image alt text, duplicate links, unresolved placeholders, and VRP heading structure.
+- Bulk review adds server QA results while retaining existing local checks if the server is unavailable; only publishing fields/content are sent, never ticket IDs, account names, or WordPress credentials.
+- Files: api/qa.js, server/qa-service.js, src/core/private_api.js, src/bulk/bulk.js, src/manifest.json
+
 ## 1.9.16 (Horizon) — Bulk Blog review and draft saving
 - Fetch Blog Google Docs into an isolated bulk package, review/edit title, slug, meta, CTA and article content, then queue the existing WordPress Blog flow to auto-save a draft.
 - Blog fetches show actionable checks and Blog drafts return edit/preview URLs and save results to the dashboard.

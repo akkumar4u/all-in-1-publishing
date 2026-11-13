@@ -69,3 +69,20 @@ export async function verifyButtonUrlsOnPrivateServer(buttonsHtml, websiteUrl = 
   if (!response.ok || !data.ok || !Array.isArray(data.checks)) throw new Error(data.error || `Private button check failed (HTTP ${response.status}).`);
   return data.checks;
 }
+
+export async function runPrivateQa(payload = {}) {
+  const config = await settings();
+  requireConfig(config);
+  let response;
+  try {
+    response = await fetch(`${config.url}/api/qa`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': config.key },
+      body: JSON.stringify(payload), cache: 'no-store',
+    });
+  } catch { throw new Error('Could not reach the private QA service.'); }
+  let data = {};
+  try { data = await response.json(); } catch { /* handled below */ }
+  if (!response.ok || !data.ok || !Array.isArray(data.checks)) throw new Error(data.error || `Private QA failed (HTTP ${response.status}).`);
+  return data.checks;
+}
