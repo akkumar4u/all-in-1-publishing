@@ -66,6 +66,7 @@ function decodeMarkup(markup) {
 async function inspectUrl(target) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 7000);
+  const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
   try {
     const parsed = new URL(target);
     if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
@@ -74,13 +75,13 @@ async function inspectUrl(target) {
     await assertPublicHost(parsed.hostname);
     let response = await fetch(parsed.href, {
       method: 'HEAD', redirect: 'manual', signal: controller.signal,
-      headers: { 'User-Agent': 'ContentStudio-LinkCheck/1.0' },
+      headers: { 'User-Agent': userAgent, Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
     });
-    if (response.status === 405 || response.status === 501) {
+    if ([401, 403, 405, 501].includes(response.status)) {
       await response.body?.cancel().catch(() => {});
       response = await fetch(parsed.href, {
         method: 'GET', redirect: 'manual', signal: controller.signal,
-        headers: { 'User-Agent': 'ContentStudio-LinkCheck/1.0', Range: 'bytes=0-0' },
+        headers: { 'User-Agent': userAgent, Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', Range: 'bytes=0-0' },
       });
     }
     const status = response.status;

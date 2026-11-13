@@ -206,6 +206,11 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.65 (Horizon) — Retry button checks blocked by HEAD
+- Use a browser-like request header for button URL checks and retry GET when HEAD receives 401/403/405/501, since some dealership sites block HEAD while serving the page normally.
+- A remaining 403 stays “could not be confirmed”; it is never presented as proof the URL is broken.
+- Files: server/button-checker.js, src/manifest.json
+
 ## 1.9.64 (Horizon) — Treat blocked button checks as unconfirmed
 - HTTP 401, 403, 408, 429, 5xx, and network failures no longer label a button as broken; report them as unconfirmed, with a specific reason for common blocked responses.
 - Keep confirmed broken HTTP responses and redirects as errors, and show separate counts for broken vs. unconfirmed links in the Hub CTA status.
