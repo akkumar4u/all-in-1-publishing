@@ -10,6 +10,9 @@
     },
     "api/verify-buttons.js": {
       "maxDuration": 30
+    },
+    "api/verify-published.js": {
+      "maxDuration": 30
     }
   }
 }

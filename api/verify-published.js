@@ -1,0 +1,29 @@
+const { verifyPublishedPage } = require('../server/published-checker');
+const MAX_URL_LENGTH = 4096;
+function allowCors(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Vary', 'Origin'); res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key'); res.setHeader('Cache-Control', 'no-store');
+}
+function validKey(supplied, expected) {
+  if (!supplied || !expected) return false;
+  const a = Buffer.from(String(supplied)), b = Buffer.from(String(expected));
+  return a.length === b.length && require('node:crypto').timingSafeEqual(a, b);
+}
+module.exports = async function handler(req, res) {
+  allowCors(req, res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Use POST.' });
+  const expected = process.env.CONTENT_STUDIO_API_KEY;
+  if (!expected) return res.status(503).json({ ok: false, error: 'The private server is not configured yet.' });
+  if (!validKey(req.headers['x-api-key'], expected)) return res.status(401).json({ ok: false, error: 'The private server key is missing or invalid.' });
+  const { url = '', expectedTitle = '' } = req.body || {};
+  if (typeof url !== 'string' || typeof expectedTitle !== 'string' || !url.trim() || url.length > MAX_URL_LENGTH) return res.status(400).json({ ok: false, error: 'Provide one public page URL to check.' });
+  try { return res.status(200).json({ ok: true, ...(await verifyPublishedPage(url, expectedTitle)) }); }
+  catch (error) {
+    const reason = String(error?.code || error?.name || 'CHECK_FAILED').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+    console.error('Published URL check failed:', reason);
+    return res.status(422).json({ ok: false, error: `Published page could not be verified (${reason}).` });
+  }
+};
+module.exports.config = { api: { bodyParser: { sizeLimit: '100kb' } } };

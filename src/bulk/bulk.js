@@ -2,7 +2,7 @@ import { sheetApi, getSettings, saveSettings, flushPending, pendingCount } from 
 import { runTicket, analyse, prepareImportedDoc, verifyButtonUrls, normalizeButtonMarkup, composeBlogContent, fetchBlogCategories, fetchWebsitePages, chooseParentPage, suggestedBlogCategory, resolveWebsiteRedirect, esc } from './pipeline.js';
 import { initInternalLinks } from '../links/il_popup.js';
 import { TASK_TYPES } from '../salesforce/sf_classify.js';
-import { checkPrivateServer, runPrivateQa } from '../core/private_api.js';
+import { checkPrivateServer, runPrivateQa, verifyPublishedPageOnPrivateServer } from '../core/private_api.js';
 
 const $ = id => document.getElementById(id);
 const send = msg => new Promise(resolve => chrome.runtime.sendMessage(msg, r => resolve(r || { ok: false, error: chrome.runtime.lastError?.message || 'No answer from the extension.' })));
@@ -912,6 +912,14 @@ async function savePublishedUrl(ticket, value, { quiet = false, publishedAt = ''
     const detectedAt = Date.parse(publishedDate && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(publishedDate) ? publishedDate + 'Z' : publishedDate);
     state.publishedVisibleUntil[t] = (Number.isFinite(detectedAt) && detectedAt > 0 ? detectedAt : Date.now()) + 5 * 60 * 1000;
     await chrome.storage.local.set({ [PUBLISHED_VISIBLE_KEY]: state.publishedVisibleUntil });
+    pkg.checks = (pkg.checks || []).filter(check => !String(check.name || '').startsWith('Published page — '));
+    try {
+      const publishedCheck = await verifyPublishedPageOnPrivateServer(url, row['Page Title'] || '');
+      pkg.checks.push(...publishedCheck.checks);
+      if (publishedCheck.finalUrl) pkg.publishedFinalUrl = publishedCheck.finalUrl;
+    } catch (error) {
+      pkg.checks.push({ name:'Published page — verification unavailable', ok:false, level:'warn', detail:error.message || 'The published URL was saved, but could not be checked.' });
+    }
   }
   const result = await sheetApi.save(row, pkg);
   state.cache.set(t, { row, pkg }); setRow(row); renderGrid(); await refreshPending();

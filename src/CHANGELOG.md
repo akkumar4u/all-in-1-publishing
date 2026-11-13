@@ -206,6 +206,11 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.63 (Horizon) — Public published-page verification
+- After the dashboard saves a Published URL, verify its HTTP response, redirect destination, public HTML H1, expected title and canonical host through an authenticated Vercel endpoint.
+- The server follows a limited redirect chain, rejects non-public/private hosts at each hop, and caps the fetched HTML at 2 MB. It receives only the public URL and page title, never WordPress cookies or credentials.
+- Files: api/verify-published.js, server/published-checker.js, server/button-checker.js, src/core/private_api.js, src/bulk/bulk.js, vercel.json, src/manifest.json
+
 ## 1.9.62 (Horizon) — Private server content QA
 - Add authenticated `/api/qa` to check reviewed payloads server-side for required metadata, image alt text, duplicate links, unresolved placeholders, and VRP heading structure.
 - Bulk review adds server QA results while retaining existing local checks if the server is unavailable; only publishing fields/content are sent, never ticket IDs, account names, or WordPress credentials.

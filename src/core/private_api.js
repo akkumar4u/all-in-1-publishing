@@ -86,3 +86,19 @@ export async function runPrivateQa(payload = {}) {
   if (!response.ok || !data.ok || !Array.isArray(data.checks)) throw new Error(data.error || `Private QA failed (HTTP ${response.status}).`);
   return data.checks;
 }
+
+export async function verifyPublishedPageOnPrivateServer(url, expectedTitle = '') {
+  const config = await settings();
+  requireConfig(config);
+  let response;
+  try {
+    response = await fetch(`${config.url}/api/verify-published`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': config.key },
+      body: JSON.stringify({ url, expectedTitle }), cache: 'no-store',
+    });
+  } catch { throw new Error('Could not reach the private published-page checker.'); }
+  let data = {};
+  try { data = await response.json(); } catch { /* handled below */ }
+  if (!response.ok || !data.ok || !Array.isArray(data.checks)) throw new Error(data.error || `Published-page check failed (HTTP ${response.status}).`);
+  return { finalUrl: String(data.finalUrl || ''), checks: data.checks };
+}

@@ -152,4 +152,4 @@ async function verifyButtonUrls(buttonsHtml, websiteUrl) {
   }
 }
 
-module.exports = { verifyButtonUrls };
+module.exports = { verifyButtonUrls, assertPublicHost };
