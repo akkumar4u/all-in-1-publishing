@@ -175,6 +175,12 @@ details summary:hover { color: var(--brand-2); }
 #panel-hub .vrp-page-suggestions button:hover, #panel-hub .vrp-page-suggestions button.is-selected { border-color:#0b5a4a; background:#eef7f3; }
 #panel-hub #vrp-page-search-status { margin:5px 0; font-size:11px; }
 
+#landing-image-choices, #blog-image-choices { grid-template-columns:repeat(3,minmax(0,1fr)) !important; align-items:stretch; gap:8px !important; }
+#landing-image-choices > button, #blog-image-choices > button { display:block; width:100%; min-width:0; max-width:100%; box-sizing:border-box; overflow:hidden; }
+#landing-image-choices > button img, #blog-image-choices > button img { display:block; width:100% !important; height:72px !important; object-fit:cover; border-radius:5px; }
+#landing-image-choices > button > div, #blog-image-choices > button > div { min-width:0; max-width:100%; overflow:hidden; overflow-wrap:anywhere; word-break:break-word; }
+#landing-image-choices > button > div { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+
 .cta-review{margin:8px 0 2px;padding:10px;border:1px solid #d9e4e0;border-radius:10px;background:#f8fbfa}.cta-review>label{display:block;font-weight:700}.cta-review textarea{display:block;width:100%;min-height:68px;margin-top:5px;box-sizing:border-box;font:12px/1.45 ui-monospace,Consolas,monospace}.cta-check-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;font-size:12px}.cta-url-results{display:grid;gap:4px;margin:6px 0 0;padding:0;list-style:none}.cta-url-results li{padding:5px 7px;border-radius:6px;font-size:11px;overflow-wrap:anywhere}.cta-url-results li.ok{color:#126b43;background:#e7f5ed}.cta-url-results li.error{color:#a52222;background:#fdeaea}.cta-url-results li.warn{color:#845b00;background:#fff5d8}
 
 .blog-button-review{margin:8px 0;padding:9px;border:1px solid #d9e4e0;border-radius:9px}.blog-button-review summary{cursor:pointer;font-weight:700}.blog-button-review textarea{display:block;width:100%;min-height:64px;margin-top:7px;box-sizing:border-box;font:12px/1.45 ui-monospace,Consolas,monospace}

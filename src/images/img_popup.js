@@ -47,9 +47,10 @@ function render() {
       im.src = c.imgSrc; im.alt = c.title;
       if (p !== 'blog-image') im.style.cssText = 'width:100%;height:56px;object-fit:cover;border-radius:4px;display:block';
       const cap = document.createElement('div');
-      cap.textContent = c.title + (c.sizes && c.sizes.length ? ` · ${WIDTH} ✓` : '');
+      const readableTitle = String(c.title || '').replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+      cap.textContent = readableTitle + (c.sizes && c.sizes.length ? ` · ${WIDTH} ✓` : '');
       if (p === 'blog-image') cap.className = 'blog-image-choice-title';
-      else cap.style.cssText = 'font-size:10px;line-height:1.2;margin-top:2px;overflow:hidden;max-height:24px';
+      else cap.style.cssText = 'font-size:10px;line-height:1.25;margin-top:4px;overflow:hidden;max-height:26px;overflow-wrap:anywhere';
       cell.append(im, cap);
       cell.addEventListener('click', async () => {
         setStatus(`Downloading "${c.title}"…`);

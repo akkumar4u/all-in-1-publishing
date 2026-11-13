@@ -272,7 +272,7 @@
             <input id="landing-image-alt" type="text" placeholder="Alt text (defaults to the search text)" autocomplete="off">
             <label style="display:flex;gap:6px;align-items:center;font-size:12px"><input id="landing-image-choose" type="checkbox"> Let me choose the image (otherwise a good match is picked at random)</label>
             <button id="landing-image-fetch" type="button">Find &amp; download image</button>
-            <div id="landing-image-choices" hidden style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px"></div>
+            <div id="landing-image-choices" hidden style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px"></div>
             <div id="landing-image-status" class="status"></div>
             <img id="landing-image-preview" alt="" hidden style="max-width:100%;margin-top:6px;border-radius:6px">
             <button type="button" id="landing-image-save" hidden style="margin-top:6px">Save image to my computer</button>

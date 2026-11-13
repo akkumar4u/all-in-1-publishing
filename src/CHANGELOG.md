@@ -206,6 +206,11 @@
 
 Newest first. Format: **version (zip)** — what changed → files touched.
 
+## 1.9.67 (Horizon) — Normalize image choice cards
+- Keep Cloudinary and Dealer Inspire image candidates in equal-width, shrink-safe grid cards with consistent thumbnail height and readable, two-line filenames.
+- Display filenames with spaces instead of underscores/hyphens while retaining the original image title for selection/download.
+- Files: src/images/img_popup.js, src/popup.html, src/blog_popup.html, src/premium.css, src/blog_popup.css, src/manifest.json
+
 ## 1.9.66 (Horizon) — Check blocked links from the user's browser
 - If the private server gets an inconclusive 401/403/rate-limit/server response, retry the URL from the extension's browser context. Prefer a local success or confirmed local error; preserve an unconfirmed warning when Chrome cannot confirm either way.
 - This covers Hub, Blog, Landing, Comparison, and Bulk button checks through their shared verifier.

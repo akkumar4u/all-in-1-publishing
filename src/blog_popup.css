@@ -25,3 +25,7 @@ button.secondary { background: #e7efec; color: #194746; margin-top: 8px; }
 details { margin-top: 14px; }
 summary { cursor: pointer; font-size: 11px; font-weight: 700; }
 pre { background: #f5f8f6; border-radius: 5px; font: 10px/1.4 monospace; max-height: 130px; overflow: auto; padding: 8px; white-space: pre-wrap; word-break: break-word; }
+#blog-image-choices { grid-template-columns:repeat(3,minmax(0,1fr)) !important; align-items:stretch; gap:8px !important; }
+#blog-image-choices > button { display:block; width:100%; min-width:0; max-width:100%; box-sizing:border-box; overflow:hidden; }
+#blog-image-choices > button img { display:block; width:100% !important; height:72px !important; object-fit:cover; border-radius:5px; }
+#blog-image-choices > button > div { min-width:0; max-width:100%; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; word-break:break-word; }
