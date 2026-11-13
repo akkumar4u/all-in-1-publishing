@@ -1,16 +1,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { JSDOM } = require('jsdom');
 
 const sourceRoot = path.join(__dirname, '..', 'src');
-const scripts = {
-  links: fs.readFileSync(path.join(sourceRoot, 'link_rules.js'), 'utf8'),
-  hub: fs.readFileSync(path.join(sourceRoot, 'hub_parser.js'), 'utf8'),
-  blog: fs.readFileSync(path.join(sourceRoot, 'blog_parser.js'), 'utf8'),
-};
 
 function parseGoogleDoc(type, sourceHtml, ownHost = '') {
+  const { JSDOM } = require('jsdom');
+  const scripts = {
+    links: fs.readFileSync(path.join(sourceRoot, 'link_rules.js'), 'utf8'),
+    hub: fs.readFileSync(path.join(sourceRoot, 'hub_parser.js'), 'utf8'),
+    blog: fs.readFileSync(path.join(sourceRoot, 'blog_parser.js'), 'utf8'),
+  };
   const dom = new JSDOM('<!doctype html><html><body></body></html>');
   const window = dom.window;
   const sandbox = {

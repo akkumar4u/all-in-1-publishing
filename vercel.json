@@ -5,7 +5,7 @@
   "outputDirectory": "public",
   "functions": {
     "api/parse.js": {
-      "includeFiles": "src/{hub_parser.js,blog_parser.js,link_rules.js}",
+      "includeFiles": "src/*.js",
       "maxDuration": 30
     }
   }
