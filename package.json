@@ -6,11 +6,13 @@
     "build": "node build.mjs",
     "build:plain": "node build.mjs --no-minify"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "esbuild": "0.24.2"
   },
   "dependencies": {
-    "jsdom": "^31.0.0"
+    "jsdom": "^26.1.0"
   }
 }
