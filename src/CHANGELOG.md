@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.74 (Horizon) — Add a Hub CTA to Blog posts
+- Fetch the site's WordPress pages in the Blog panel and Bulk review; offer Research/Hub pages as destinations.
+- Add the selected Hub page as `<a class="button primary-button" href="/relative-path/">Page title</a>`, matching the Landing page Hub-link format.
+- Keep the Hub CTA in the editable Blog button markup so it is reviewed, checked, saved, and sent to WordPress with the post.
+
 ## 1.9.73 (Horizon) — Filter plain-text Google Docs comment replies
 - Remove unanchored editorial notes such as “Just saw it here”, “Can remove”, and standalone “Thank you” replies from Blog and page content.
 - Keep normal body text and continue filtering structural Google Docs comment markers across all supported parsers.

@@ -300,6 +300,9 @@ async function renderDetail(ticket) {
   const draftPreview = r['Preview Link'] || '';
   const summaryHubCode = hubAnchorCode(r);
   const pageTask = /vrp|landing|comparison|hub/i.test(r['Task Type'] || '') || ['Lightning','DI Page Composer'].includes(r.Template);
+  const blogHubChoices = (pkg?.sitePages || []).filter(page => /research|hub/i.test(`${page.title} ${page.slug}`));
+  const preferredBlogHub = blogHubChoices.find(page => /manufacturer-research/i.test(page.slug)) || blogHubChoices.find(page => /research/i.test(`${page.title} ${page.slug}`));
+  const blogHubOptions = [`<option value="">Choose a Hub page…</option>`, ...blogHubChoices.map(page => `<option value="${esc(page.id)}"${Number(page.id) === Number(preferredBlogHub?.id) ? ' selected' : ''}>${esc(page.title)}</option>`)].join('');
   const detailSummary = `<section class="ticket-summary"><div class="ticket-summary-title"><div><span class="eyebrow">TICKET OVERVIEW</span><h3>Review details</h3></div><span class="ticket-summary-count">${esc(t)}</span></div><div class="ticket-summary-grid">
     ${summaryField('Ticket Number', esc(t))}
     ${summaryField('Type', taskTypeCell(r, t, 'data-detail-type-for'))}
@@ -334,7 +337,7 @@ async function renderDetail(ticket) {
       <label>Slug<input id="review-slug" value="${esc(r.Slug || '')}"></label>
       <label>Meta title<input id="review-meta-title" value="${esc(r['Meta Title'] || '')}"></label>
       <label>Meta description<textarea id="review-meta-description" rows="2">${esc(r['Meta Description'] || '')}</textarea></label>
-      ${isBlog ? `<div class="review-button-code blog-cta-editor"><b>CTA buttons from the Google Doc</b><p class="muted">Edit each button’s text or destination. URL checks update automatically.</p><div id="review-cta-links"></div><button id="review-cta-add" class="btn" type="button">+ Add CTA button</button><details class="cta-raw-code"><summary>Advanced: edit button HTML</summary><textarea id="review-button-code" rows="3" placeholder="Button HTML from the Google Doc">${esc(imp?.buttonsHtml || '')}</textarea></details><ol id="review-button-checks" class="button-checks">${checks.filter(c => c.name.startsWith('Button URL — ')).map((c,i) => `<li class="${c.level}"><b>${i+1}.</b> ${c.ok ? '✔' : c.level === 'error' ? '✖' : '!'} ${esc(c.name.replace('Button URL — ',''))} — ${esc(c.detail || (c.ok ? 'working' : 'needs attention'))}</li>`).join('') || '<li class="muted">No CTA URLs to check.</li>'}</ol></div>` : `<label class="review-button-code">Button Code / CTA<textarea id="review-button-code" rows="3" placeholder="Button HTML from the Google Doc">${esc(imp?.buttonsHtml || '')}</textarea><ol id="review-button-checks" class="button-checks">${checks.filter(c => c.name.startsWith('Button URL — ')).map((c,i) => `<li class="${c.level}"><b>${i+1}.</b> ${c.ok ? '✔' : c.level === 'error' ? '✖' : '!'} ${esc(c.name.replace('Button URL — ',''))} — ${esc(c.detail || (c.ok ? 'working' : 'needs attention'))}</li>`).join('') || '<li class="muted">No CTA URLs to check.</li>'}</ol></label>`}
+      ${isBlog ? `<div class="review-button-code blog-cta-editor"><b>CTA buttons from the Google Doc</b><p class="muted">Edit each button’s text or destination. URL checks update automatically.</p><div id="review-cta-links"></div><button id="review-cta-add" class="btn" type="button">+ Add CTA button</button><div class="blog-hub-cta-row"><label for="review-hub-page">Add a Hub page button</label><select id="review-hub-page">${blogHubOptions}</select><button id="review-hub-add" class="btn" type="button" ${blogHubChoices.length ? '' : 'disabled'}>Add Hub button</button><small>${blogHubChoices.length ? 'Uses the Landing page format: primary button, page title, and relative URL.' : 'No Research/Hub page was found in the WordPress page list.'}</small></div><details class="cta-raw-code"><summary>Advanced: edit button HTML</summary><textarea id="review-button-code" rows="3" placeholder="Button HTML from the Google Doc">${esc(imp?.buttonsHtml || '')}</textarea></details><ol id="review-button-checks" class="button-checks">${checks.filter(c => c.name.startsWith('Button URL — ')).map((c,i) => `<li class="${c.level}"><b>${i+1}.</b> ${c.ok ? '✔' : c.level === 'error' ? '✖' : '!'} ${esc(c.name.replace('Button URL — ',''))} — ${esc(c.detail || (c.ok ? 'working' : 'needs attention'))}</li>`).join('') || '<li class="muted">No CTA URLs to check.</li>'}</ol></div>` : `<label class="review-button-code">Button Code / CTA<textarea id="review-button-code" rows="3" placeholder="Button HTML from the Google Doc">${esc(imp?.buttonsHtml || '')}</textarea><ol id="review-button-checks" class="button-checks">${checks.filter(c => c.name.startsWith('Button URL — ')).map((c,i) => `<li class="${c.level}"><b>${i+1}.</b> ${c.ok ? '✔' : c.level === 'error' ? '✖' : '!'} ${esc(c.name.replace('Button URL — ',''))} — ${esc(c.detail || (c.ok ? 'working' : 'needs attention'))}</li>`).join('') || '<li class="muted">No CTA URLs to check.</li>'}</ol></label>`}
     </div><div class="review-editor-label">Content (edit or remove text)</div><iframe id="review-content-editor" class="review-frame editable" scrolling="auto" title="Editable imported content" sandbox="allow-same-origin"></iframe>
     </section>
     </div>
@@ -358,6 +361,20 @@ async function renderDetail(ticket) {
       buttonCodeInput.dispatchEvent(new Event('input', { bubbles: true }));
       const inputs = $('review-cta-links')?.querySelectorAll('[data-cta-label]');
       inputs?.[inputs.length - 1]?.focus();
+    });
+    $('review-hub-add')?.addEventListener('click', () => {
+      const page = blogHubChoices.find(item => String(item.id) === $('review-hub-page')?.value);
+      if (!page?.link) return toast('The selected Hub page has no published URL.');
+      let href = '';
+      try { const url = new URL(page.link); href = url.pathname + url.search; } catch { /* handled below */ }
+      if (!href) return toast('Could not read the selected Hub page URL.');
+      const existing = blogCtaLinks(buttonCodeInput.value);
+      if (existing.some(link => { try { return new URL(link.href, page.link).pathname === new URL(href, page.link).pathname; } catch { return false; } })) return toast('This Hub page is already in the CTA buttons.');
+      const anchor = `<a class="button primary-button" href="${esc(href)}">${esc(page.title)}</a>`;
+      buttonCodeInput.value = `${buttonCodeInput.value.trim()}${buttonCodeInput.value.trim() ? '\n' : ''}<div class="text-center">${anchor}</div>`;
+      renderBlogCtaEditor(buttonCodeInput.value);
+      buttonCodeInput.dispatchEvent(new Event('input', { bubbles: true }));
+      toast(`Added ${page.title} as a Landing-style Hub button.`);
     });
   }
   if (buttonCodeInput) {

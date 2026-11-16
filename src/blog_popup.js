@@ -1,4 +1,4 @@
-import { normalizeButtonMarkup, verifyButtonUrls } from './bulk/pipeline.js';
+import { normalizeButtonMarkup, verifyButtonUrls, fetchWebsitePages } from './bulk/pipeline.js';
 
 const empty = document.querySelector('#blog-empty');
 const draftCard = document.querySelector('#draft');
@@ -11,6 +11,9 @@ const blogButtonSummary = document.querySelector('#blog-button-summary');
 const blogButtonResults = document.querySelector('#blog-button-results');
 const blogButtonPreview = document.querySelector('#blog-button-preview');
 const blogButtonCheck = document.querySelector('#blog-button-check');
+const blogHubPage = document.querySelector('#blog-hub-page');
+const blogHubAdd = document.querySelector('#blog-hub-add');
+const blogHubStatus = document.querySelector('#blog-hub-status');
 const documentUrl = document.querySelector('#document-url');
 const adminUrl = document.querySelector('#blog-admin-url');
 const importButton = document.querySelector('#import');
@@ -25,6 +28,7 @@ let activeBlogCtaDraft = null;
 let blogCtaCheckId = 0;
 let blogCtaSaveTimer = 0;
 let blogCtaCheckTimer = 0;
+let blogHubPages = [];
 const importedFields = [
   ['Meta title', 'metaTitle'],
   ['Meta description', 'metaDescription'],
@@ -66,12 +70,52 @@ async function showDraft(draft, fillStatus) {
   window.__diBlogSave = saveSelectedContent;
   document.dispatchEvent(new CustomEvent('di:blog-imported', { detail: { bodyHtml: draft.content || '', adminUrl: draft.adminUrl || '' } }));
   if (buttonCode.trim()) checkBlogButtonUrls();
+  loadBlogHubPages(draft.adminUrl || adminUrl.value || '');
   if (fillStatus?.message) {
     status.textContent = fillStatus.message;
     status.className = fillStatus.ok ? 'success' : 'error';
   }
   fillButton.disabled = Boolean(fillStatus?.filled);
 }
+
+async function loadBlogHubPages(siteAdminUrl) {
+  blogHubPage.replaceChildren();
+  const loading = document.createElement('option'); loading.value = ''; loading.textContent = 'Loading Hub pages…'; blogHubPage.append(loading);
+  blogHubAdd.disabled = true;
+  blogHubPages = await fetchWebsitePages(siteAdminUrl);
+  const hubs = blogHubPages.filter(page => /research|hub/i.test(`${page.title} ${page.slug}`));
+  const choices = hubs.length ? hubs : blogHubPages;
+  blogHubPage.replaceChildren();
+  const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = choices.length ? 'Choose a Hub page…' : 'No WordPress pages found'; blogHubPage.append(placeholder);
+  choices.forEach(page => {
+    const option = document.createElement('option'); option.value = String(page.id); option.textContent = page.title; blogHubPage.append(option);
+  });
+  if (choices.length) {
+    const preferred = choices.find(page => /manufacturer-research/i.test(page.slug)) || choices.find(page => /research/i.test(`${page.title} ${page.slug}`));
+    if (preferred) { blogHubPage.value = String(preferred.id); blogHubAdd.disabled = false; }
+    blogHubStatus.textContent = hubs.length ? 'Choose a Hub page; it will be added as a Landing-style button.' : 'No obvious Hub page found. You can choose the correct page from the website list.';
+  } else {
+    blogHubStatus.textContent = 'Could not load WordPress pages. Check the site URL and WordPress login.';
+  }
+}
+
+blogHubPage.addEventListener('change', () => { blogHubAdd.disabled = !blogHubPage.value; });
+blogHubAdd.addEventListener('click', () => {
+  const page = blogHubPages.find(item => String(item.id) === blogHubPage.value);
+  if (!page?.link) { blogHubStatus.textContent = 'This page has no published URL yet.'; return; }
+  let path = '';
+  try { const url = new URL(page.link); path = url.pathname + url.search; } catch { /* report below */ }
+  if (!path) { blogHubStatus.textContent = 'Could not read the Hub page URL.'; return; }
+  const parsed = new DOMParser().parseFromString(normalizeButtonMarkup(blogButtonCode.value || ''), 'text/html');
+  const alreadyAdded = [...parsed.querySelectorAll('a[href]')].some(anchor => {
+    try { return new URL(anchor.getAttribute('href'), page.link).pathname === new URL(path, page.link).pathname; } catch { return false; }
+  });
+  if (alreadyAdded) { blogHubStatus.textContent = 'This Hub page is already in the CTA buttons.'; return; }
+  const anchor = `<a class="button primary-button" href="${path.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${String(page.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a>`;
+  blogButtonCode.value = `${blogButtonCode.value.trim()}${blogButtonCode.value.trim() ? '\n' : ''}<div class="text-center">${anchor}</div>`;
+  blogButtonCode.dispatchEvent(new Event('input', { bubbles: true }));
+  blogHubStatus.textContent = `Added “${page.title}” using the Landing page button format.`;
+});
 
 function renderBlogButtonPreview(markup, baseUrl) {
   const decoded = normalizeButtonMarkup(markup || '');
