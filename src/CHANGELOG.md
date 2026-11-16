@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.73 (Horizon) — Filter plain-text Google Docs comment replies
+- Remove unanchored editorial notes such as “Just saw it here”, “Can remove”, and standalone “Thank you” replies from Blog and page content.
+- Keep normal body text and continue filtering structural Google Docs comment markers across all supported parsers.
+
 ## 1.9.72 (Horizon) — Make the Blog CTA box editable
 - Remove the read-only lock from the Blog Button Code / CTA field in the extension popup.
 - Save edits to the queued Blog draft, refresh the button preview, and automatically recheck destinations.

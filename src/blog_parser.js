@@ -14,6 +14,14 @@ const plainCommentLines = [
   /^but there is this source from j\.d\.\s*power,?\s*so included here\b/i,
   /^told that maintenance\/reliability briefs are subject to our research\/best judgment\b/i,
   /^requested,?\s+so\s+included\s+once\s*[.!]?$/i,
+  // Some Docs comment exports lose their cmnt anchors and arrive as plain
+  // paragraphs. These are editorial replies, not article copy.
+  /^just saw it here\s*:?/i,
+  /^can remove\s*[.!]?$/i,
+  /^thank you(?:[\s,]+thank you)*[.!]?$/i,
+  /^thanks(?: so much)?[.!]?$/i,
+  /^also,?\s+not much info has been released yet\b/i,
+  /^can always add on later\s*[.!]?$/i,
 ];
 const isPlainCommentText = value => plainCommentLines.some(pattern => pattern.test(text(value).replace(/^\[[a-z]{1,2}\]\s*/i, '')));
 const EMPTY_DISCLAIMER = /^(?:n\/?a|none|no|nil|not applicable|no disclaimers?|[-–—.]+)$/i;
