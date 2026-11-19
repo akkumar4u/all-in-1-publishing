@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.75 (Horizon) — Remove Landing image row padding
+- Set the Landing page image row padding to 0% so the image no longer has the extra 2% inset.
+- Keep the separate Landing content row spacing unchanged.
+
 ## 1.9.74 (Horizon) — Add a Hub CTA to Blog posts
 - Fetch the site's WordPress pages in the Blog panel and Bulk review; offer Research/Hub pages as destinations.
 - Add the selected Hub page as `<a class="button primary-button" href="/relative-path/">Page title</a>`, matching the Landing page Hub-link format.

@@ -198,7 +198,7 @@ function generateLandingPage({
         // Blank row above the content, reserved for the page image (same as the comparison page's image row).
         id: 'landingimage',
         label: 'Image Row (blank)',
-        description: 'Blank Full Width WYSIWYG — Max Width Container ticked, 2% padding, text-center — for the image',
+        description: 'Blank Full Width WYSIWYG — Max Width Container ticked, no row padding, text-center — for the image',
         html: '',
         // With an image: the build uploads it to the site's media library (with the alt text) and puts the <img> here.
         // The file is named after the page slug (the Doc's Page Slug wins), e.g. 2026-cadillac-xt5-review.png
@@ -207,7 +207,7 @@ function generateLandingPage({
         config: {
           rowType: 'Full Width WYSIWYG',
           customClass: 'text-center',
-          rowPadding: '2%',
+          rowPadding: '0%',
           maxWidthContainer: true,
           bgImgSizing: 'Auto',
           backgroundAttachment: 'Scroll',
