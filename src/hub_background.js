@@ -220,9 +220,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const match = documentUrl.match(GOOGLE_DOC_ID);
       if (!match) throw new Error('Please enter a valid Google Docs link.');
       // A link to a specific tab (?tab=t.abc) must export THAT tab, otherwise the text is missing.
-      const tabParam = (documentUrl.match(/[?&]tab=(t\.[A-Za-z0-9]+)/) || [])[1];
-      // t.0 (the FIRST tab) needs the parameter too: without it Google sends every tab of the doc, and the other tabs' text
-      // (and their "Disclaimer:") ends up in the content.
+      let requestedTab = '';
+      try { requestedTab = new URL(documentUrl).searchParams.get('tab') || ''; } catch { /* validated below by doc id */ }
+      // Google returns every tab when `tab` is omitted. Default to the first
+      // tab so content below its Disclaimer cannot be pulled in from later tabs.
+      // Preserve an explicit tab from the user's Doc link.
+      const tabParam = /^t\.[A-Za-z0-9_-]+$/.test(requestedTab) ? requestedTab : 't.0';
       const baseExport = `https://docs.google.com/document/d/${match[1]}/export?format=html`;
       const exportUrl = baseExport + (tabParam ? `&tab=${tabParam}` : '');
       const response = await fetch(exportUrl);

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.76 (Horizon) — Keep Google Doc imports within one tab
+- Default Blog and Hub/page exports to Google Docs’ first tab (`t.0`) when the URL has no tab ID.
+- Continue honoring an explicit `?tab=t.…` link, preventing content and Disclaimer sections from later tabs entering the imported page.
+
 ## 1.9.75 (Horizon) — Remove Landing image row padding
 - Set the Landing page image row padding to 0% so the image no longer has the extra 2% inset.
 - Keep the separate Landing content row spacing unchanged.

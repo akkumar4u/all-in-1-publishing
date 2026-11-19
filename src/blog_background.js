@@ -118,9 +118,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       const match = documentUrl.match(GOOGLE_DOC_ID);
       if (!match) throw new Error('Please enter a valid Google Docs link.');
-      // A link to a specific tab (?tab=t.abc) must export THAT tab only (a doc can hold several tabs).
-      const tabParam = (documentUrl.match(/[?&]tab=(t\.[A-Za-z0-9]+)/) || [])[1];
-      const response = await fetch(`https://docs.google.com/document/d/${match[1]}/export?format=html` + (tabParam ? `&tab=${tabParam}` : ''));
+      // Google returns every tab when `tab` is omitted. Default to the first
+      // tab so content below its Disclaimer cannot be pulled in from later tabs.
+      // Preserve an explicit tab from the user's Doc link.
+      let requestedTab = '';
+      try { requestedTab = new URL(documentUrl).searchParams.get('tab') || ''; } catch { /* validated below by doc id */ }
+      const tabParam = /^t\.[A-Za-z0-9_-]+$/.test(requestedTab) ? requestedTab : 't.0';
+      const response = await fetch(`https://docs.google.com/document/d/${match[1]}/export?format=html&tab=${encodeURIComponent(tabParam)}`);
       TL.lap('Download the Google Doc');
       if (!response.ok) throw new Error(`Google Docs returned HTTP ${response.status}. Confirm the document is shared as “Anyone with the link” → Viewer, then try again.`);
       const data = await parseGoogleDocInExtension(await response.text(), adminUrl);
