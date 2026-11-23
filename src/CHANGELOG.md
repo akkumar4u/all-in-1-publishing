@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.79 (Horizon) — Add Blog Generate Preview and Hub Code
+- Blog review now has a Generate Preview step matching Landing, with editable button classes/URL and the generated title-link anchor ready to copy.
+- Blog Hub Code uses the published permalink when known, otherwise the post slug as a root-relative path.
+
 ## 1.9.78 (Horizon) — Generate Hub Code for Blog tickets
 - Blog tickets now show and copy Hub Code in the dashboard, using the post title and actual published URL when available, or `/<slug>/` as the preview fallback.
 - Blog Hub links no longer inherit a page parent path; Landing/Comparison continue to include their real parent path.

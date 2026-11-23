@@ -14,6 +14,14 @@ const blogButtonCheck = document.querySelector('#blog-button-check');
 const blogHubPage = document.querySelector('#blog-hub-page');
 const blogHubAdd = document.querySelector('#blog-hub-add');
 const blogHubStatus = document.querySelector('#blog-hub-status');
+const blogGeneratePreview = document.querySelector('#blog-generate-preview');
+const blogPreviewStatus = document.querySelector('#blog-preview-status');
+const blogHubCodePreview = document.querySelector('#blog-hub-code-preview');
+const blogHubCodeClass = document.querySelector('#blog-hub-code-class');
+const blogHubCodeAnchor = document.querySelector('#blog-hub-code-anchor');
+const blogHubCodeUrl = document.querySelector('#blog-hub-code-url');
+const blogHubCodeOutput = document.querySelector('#blog-hub-code-output');
+const blogHubCodeCopy = document.querySelector('#blog-hub-code-copy');
 const documentUrl = document.querySelector('#document-url');
 const adminUrl = document.querySelector('#blog-admin-url');
 const importButton = document.querySelector('#import');
@@ -53,6 +61,10 @@ async function showDraft(draft, fillStatus) {
   document.querySelector('#target').textContent = draft.adminUrl || 'No target set';
   const buttonCode = draft.buttons || '';
   activeBlogCtaDraft = draft;
+  blogHubCodePreview.hidden = true;
+  blogHubCodeAnchor.value = draft.title || '';
+  blogHubCodeUrl.value = blogHubPath(draft);
+  refreshBlogHubCode();
   blogButtonCode.value = buttonCode;
   blogButtonReview.hidden = false;
   renderBlogButtonPreview(buttonCode, draft.adminUrl || adminUrl.value || '');
@@ -80,6 +92,54 @@ async function showDraft(draft, fillStatus) {
   }
   fillButton.disabled = Boolean(fillStatus?.filled);
 }
+
+function blogHubPath(draft = activeBlogCtaDraft) {
+  const published = draft?.publishedUrl || draft?.permalink || '';
+  if (published) {
+    try { return new URL(published).pathname || ''; } catch { /* fall back to the Doc slug */ }
+  }
+  let slug = String(draft?.slug || '').trim();
+  if (/^https?:\/\//i.test(slug)) { try { slug = new URL(slug).pathname; } catch { slug = ''; } }
+  const parts = slug.split(/[?#]/)[0].split('/').filter(Boolean);
+  if (!parts.length) slug = String(draft?.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  else slug = parts.join('/');
+  return slug ? `/${slug.replace(/^\/+|\/+$/g, '')}/` : '';
+}
+
+function refreshBlogHubCode() {
+  const anchor = String(blogHubCodeAnchor.value || '').replace(/[\u00a0\u1680-\u200b\u202f\u205f\u3000\ufeff]/g, ' ').replace(/\s+/g, ' ').trim();
+  let href = String(blogHubCodeUrl.value || '').trim();
+  if (href && !/^(?:https?:)?\/\//i.test(href) && !href.startsWith('/')) href = '/' + href;
+  if (href && !/\/$/.test(href) && !/[?#]/.test(href)) href += '/';
+  if (href && /^https?:\/\//i.test(href)) {
+    try { const url = new URL(href); const site = new URL(activeBlogCtaDraft?.adminUrl || ''); href = url.origin === site.origin ? url.pathname + url.search : href; } catch { /* keep the entered URL */ }
+  }
+  const escAttr = value => String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const classes = String(blogHubCodeClass.value || '').trim();
+  blogHubCodeOutput.value = anchor && href ? `<a${classes ? ` class="${escAttr(classes)}"` : ''} href="${escAttr(href)}">${escAttr(anchor)}</a>` : '';
+}
+
+blogGeneratePreview.addEventListener('click', () => {
+  if (!activeBlogCtaDraft?.title || !blogHubCodeUrl.value.trim()) {
+    blogPreviewStatus.textContent = 'Import a Blog with a title and slug first.';
+    return;
+  }
+  blogHubCodePreview.hidden = false;
+  refreshBlogHubCode();
+  blogPreviewStatus.textContent = 'Preview generated. The Hub Code is ready to copy.';
+  blogHubCodePreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+blogHubCodeClass.addEventListener('input', refreshBlogHubCode);
+blogHubCodeAnchor.addEventListener('input', refreshBlogHubCode);
+blogHubCodeUrl.addEventListener('input', refreshBlogHubCode);
+blogHubCodeCopy.addEventListener('click', async () => {
+  refreshBlogHubCode();
+  if (!blogHubCodeOutput.value) return;
+  try { await navigator.clipboard.writeText(blogHubCodeOutput.value); }
+  catch { blogHubCodeOutput.select(); document.execCommand('copy'); }
+  blogHubCodeCopy.textContent = 'Copied!';
+  setTimeout(() => { blogHubCodeCopy.textContent = 'Copy Hub Code'; }, 1600);
+});
 
 async function loadBlogHubPages(siteAdminUrl, autoAdd = false) {
   if (!siteAdminUrl) {

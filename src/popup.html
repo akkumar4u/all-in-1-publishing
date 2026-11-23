@@ -423,6 +423,16 @@
             <div><dt>Slug</dt><dd id="slug"></dd></div>
             <div><dt>Target</dt><dd id="target"></dd></div>
           </dl>
+          <div class="blog-preview-actions"><button id="blog-generate-preview" type="button">Generate Preview</button><span id="blog-preview-status" role="status">Review the post, then generate its Hub Code.</span></div>
+          <section id="blog-hub-code-preview" class="blog-hub-code-preview" hidden>
+            <h2>Hub page Linking Code</h2>
+            <p>The link to add to a Hub page. It uses this Blog post’s title and permalink.</p>
+            <label>Button classes<input id="blog-hub-code-class" type="text" value="button primary-button" autocomplete="off"></label>
+            <label>Anchor text<input id="blog-hub-code-anchor" type="text" readonly></label>
+            <label>Publish URL <small>(relative to this website)</small><input id="blog-hub-code-url" type="text" autocomplete="off"></label>
+            <textarea id="blog-hub-code-output" rows="2" readonly spellcheck="false" aria-label="Generated Hub Code"></textarea>
+            <button id="blog-hub-code-copy" class="secondary" type="button">Copy Hub Code</button>
+          </section>
           <h2>Imported fields</h2>
           <dl id="fields"></dl>
           <details class="blog-button-review" id="blog-button-review" open>

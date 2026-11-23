@@ -13,6 +13,14 @@
 #panel-blog .form-card h2 { margin-top: 0; }
 #panel-blog .blog-import-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 #panel-blog .blog-import-actions button { width: auto; margin: 0; }
+#panel-blog .blog-preview-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:14px 0; }
+#panel-blog .blog-preview-actions button { width:auto; margin:0; }
+#panel-blog #blog-preview-status { color:#536966; font-size:11px; }
+#panel-blog .blog-hub-code-preview { margin:12px 0; padding:14px; border:1px solid #dbe6e1; border-radius:10px; background:#f9fbfa; }
+#panel-blog .blog-hub-code-preview h2 { margin:0 0 6px; }
+#panel-blog .blog-hub-code-preview p { color:#536966; font-size:11px; }
+#panel-blog .blog-hub-code-preview textarea { font:11px/1.5 ui-monospace,Consolas,monospace; resize:vertical; }
+#panel-blog .blog-hub-code-preview button { width:auto; margin:8px 0 0; }
 #panel-blog .import-card label { color: #536966; display: block; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
 #panel-blog .import-card input { border: 1px solid #cfdcd7; border-radius: 5px; box-sizing: border-box; display: block; font: 12px Arial, sans-serif; margin-top: 5px; padding: 8px; width: 100%; }
 #panel-blog .import-card button { margin-top: 0; }
