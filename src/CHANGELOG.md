@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.77 (Horizon) — Make the Blog Hub button automatic and align the Blog panel
+- Blogs add the site's best matching Research/Hub page as a Landing-style CTA during import; the bulk review/import path uses the same relative URL and button markup.
+- CTA edits are saved before WordPress opens, so the newly added Hub button is included in the post.
+- Blog form cards and controls now follow the Landing page's form styling and hierarchy, with a reload control for the site's page list.
+
 ## 1.9.76 (Horizon) — Keep Google Doc imports within one tab
 - Default Blog and Hub/page exports to Google Docs’ first tab (`t.0`) when the URL has no tab ID.
 - Continue honoring an explicit `?tab=t.…` link, preventing content and Disclaimer sections from later tabs entering the imported page.

@@ -59,6 +59,47 @@ function decodeButtonMarkup(markup) {
 
 export function normalizeButtonMarkup(markup) { return decodeButtonMarkup(markup); }
 
+export function chooseBlogHubPage(pages = []) {
+  const score = page => {
+    const title = String(page?.title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const slug = String(page?.slug || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    if (/^(?:manufacturer-)?research(?:-hub)?$/.test(slug)) return 120;
+    if (/manufacturer-research|make-research/.test(slug)) return 115;
+    if (/research hub|make research|manufacturer research/.test(title)) return 110;
+    if (/research/.test(slug + ' ' + title)) return 100;
+    if (/manufacturer information|research information|hub/.test(title)) return 80;
+    if (/manufacturer-information/.test(slug)) return 75;
+    return 0;
+  };
+  return [...pages].map(page => ({ page, score: score(page) })).filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score || String(a.page.title || '').localeCompare(String(b.page.title || '')))[0]?.page || null;
+}
+
+export function addBlogHubButton(markup, page) {
+  if (!page?.link || !page?.title) return String(markup || '');
+  let url;
+  try { url = new URL(page.link); } catch { return String(markup || ''); }
+  const path = url.pathname + url.search;
+  const source = normalizeButtonMarkup(markup || '');
+  const doc = new DOMParser().parseFromString(`<div id="blog-cta-root">${source}</div>`, 'text/html');
+  const root = doc.querySelector('#blog-cta-root');
+  const samePath = href => {
+    try { const candidate = new URL(href, page.link); return candidate.origin === url.origin && candidate.pathname.replace(/\/+$/, '') === url.pathname.replace(/\/+$/, ''); }
+    catch { return false; }
+  };
+  if ([...root.querySelectorAll('a[href]')].some(anchor => samePath(anchor.getAttribute('href') || ''))) return root.innerHTML.trim();
+  const anchor = doc.createElement('a');
+  anchor.className = 'button primary-button';
+  anchor.setAttribute('href', path);
+  anchor.textContent = String(page.title).replace(/\s+/g, ' ').trim();
+  const wrapper = root.querySelector('div.text-center, div.center');
+  if (wrapper) wrapper.append(doc.createTextNode(wrapper.querySelector('a') ? ' ' : ''), anchor);
+  else {
+    const group = doc.createElement('div'); group.className = 'text-center'; group.append(anchor); root.append(group);
+  }
+  return root.innerHTML.trim();
+}
+
 export async function fetchBlogCategories(adminUrl) {
   try {
     const admin = new URL(adminUrl);
@@ -321,6 +362,13 @@ export async function runTicket(ticket, { onStep = () => {}, shouldStop = () => 
     if (!r.ok) { add('Google Doc imported', false, 'error', r.error || 'Could not import the document.'); warnings.push(r.error || 'Doc import failed.'); }
     else if (isBlog) {
       const blog = r.draft || {};
+      const hubPage = chooseBlogHubPage(sitePages);
+      if (hubPage) {
+        blog.buttons = addBlogHubButton(blog.buttons || '', hubPage);
+        blog.hubPageTitle = hubPage.title;
+      } else {
+        warnings.push('No Research/Hub page was found in the website’s WordPress page list; the Blog draft has no Hub button yet.');
+      }
       blog.categoryOptions = await fetchBlogCategories(admin);
       const suggestedCategory = suggestedBlogCategory(blog.categoryOptions, blog);
       blog.categoryIds = suggestedCategory ? [suggestedCategory.id] : [];

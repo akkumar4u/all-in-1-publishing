@@ -1,5 +1,5 @@
 import { sheetApi, getSettings, saveSettings, flushPending, pendingCount } from './sheet.js';
-import { runTicket, analyse, verifyButtonUrls, normalizeButtonMarkup, fetchBlogCategories, fetchWebsitePages, chooseParentPage, suggestedBlogCategory, resolveWebsiteRedirect, esc } from './pipeline.js';
+import { runTicket, analyse, verifyButtonUrls, normalizeButtonMarkup, fetchBlogCategories, fetchWebsitePages, chooseParentPage, chooseBlogHubPage, addBlogHubButton, suggestedBlogCategory, resolveWebsiteRedirect, esc } from './pipeline.js';
 import { initInternalLinks } from '../links/il_popup.js';
 import { TASK_TYPES } from '../salesforce/sf_classify.js';
 import { checkPrivateServer, runPrivateQa, verifyPublishedPageOnPrivateServer, buildPublishingPayload } from '../core/private_api.js';
@@ -300,8 +300,8 @@ async function renderDetail(ticket) {
   const draftPreview = r['Preview Link'] || '';
   const summaryHubCode = hubAnchorCode(r);
   const pageTask = /vrp|landing|comparison|hub/i.test(r['Task Type'] || '') || ['Lightning','DI Page Composer'].includes(r.Template);
-  const blogHubChoices = (pkg?.sitePages || []).filter(page => /research|hub/i.test(`${page.title} ${page.slug}`));
-  const preferredBlogHub = blogHubChoices.find(page => /manufacturer-research/i.test(page.slug)) || blogHubChoices.find(page => /research/i.test(`${page.title} ${page.slug}`));
+  const blogHubChoices = (pkg?.sitePages || []).filter(page => /research|hub|manufacturer information/i.test(`${page.title} ${page.slug}`));
+  const preferredBlogHub = chooseBlogHubPage(blogHubChoices);
   const blogHubOptions = [`<option value="">Choose a Hub page…</option>`, ...blogHubChoices.map(page => `<option value="${esc(page.id)}"${Number(page.id) === Number(preferredBlogHub?.id) ? ' selected' : ''}>${esc(page.title)}</option>`)].join('');
   const detailSummary = `<section class="ticket-summary"><div class="ticket-summary-title"><div><span class="eyebrow">TICKET OVERVIEW</span><h3>Review details</h3></div><span class="ticket-summary-count">${esc(t)}</span></div><div class="ticket-summary-grid">
     ${summaryField('Ticket Number', esc(t))}
@@ -365,13 +365,9 @@ async function renderDetail(ticket) {
     $('review-hub-add')?.addEventListener('click', () => {
       const page = blogHubChoices.find(item => String(item.id) === $('review-hub-page')?.value);
       if (!page?.link) return toast('The selected Hub page has no published URL.');
-      let href = '';
-      try { const url = new URL(page.link); href = url.pathname + url.search; } catch { /* handled below */ }
-      if (!href) return toast('Could not read the selected Hub page URL.');
-      const existing = blogCtaLinks(buttonCodeInput.value);
-      if (existing.some(link => { try { return new URL(link.href, page.link).pathname === new URL(href, page.link).pathname; } catch { return false; } })) return toast('This Hub page is already in the CTA buttons.');
-      const anchor = `<a class="button primary-button" href="${esc(href)}">${esc(page.title)}</a>`;
-      buttonCodeInput.value = `${buttonCodeInput.value.trim()}${buttonCodeInput.value.trim() ? '\n' : ''}<div class="text-center">${anchor}</div>`;
+      const updated = addBlogHubButton(buttonCodeInput.value, page);
+      if (updated === buttonCodeInput.value) return toast('This Hub page is already in the CTA buttons, or its URL could not be read.');
+      buttonCodeInput.value = updated;
       renderBlogCtaEditor(buttonCodeInput.value);
       buttonCodeInput.dispatchEvent(new Event('input', { bubbles: true }));
       toast(`Added ${page.title} as a Landing-style Hub button.`);
@@ -547,6 +543,10 @@ async function importReviewDoc(ticket, urlOverride = '') {
     const imported = await send({ type: 'IMPORT_GOOGLE_DOC', documentUrl: url, adminUrl: admin, landingBottom: 'blog', returnOnly: true });
     if (!imported.ok) throw new Error(imported.error || 'Could not import the Blog Google Doc.');
     const blog = imported.draft || {};
+    const freshSitePages = await fetchWebsitePages(admin);
+    if (freshSitePages.length) pkg.sitePages = freshSitePages;
+    const hubPage = chooseBlogHubPage(freshSitePages.length ? freshSitePages : (pkg.sitePages || []));
+    if (hubPage) blog.buttons = addBlogHubButton(blog.buttons || '', hubPage);
     const builtBlog = await buildPublishingPayload({ kind:'blog', adminUrl:admin, blog:{ bodyHtml:blog.bodyHtml || '', buttons:blog.buttons || '', imageShortcode:blog.imageShortcode || '' } });
     const content = builtBlog.blog.content;
     const stats = analyse(content, admin);

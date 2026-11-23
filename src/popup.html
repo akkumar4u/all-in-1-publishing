@@ -373,16 +373,18 @@
       <!-- ══════════════════ BLOG PUBLISHING (aka "Auto Publishing") — markup unchanged except 5 IDs prefixed blog- (admin-url, save-admin, import-status, empty, clear all also exist in the Hub panel above).
            Visibility is now driven by the Hub Type dropdown (value="blog") instead of a tab click — see applyFieldVisibility() in hub_popup.js. ══════════════════ -->
       <div id="panel-blog" hidden>
-        <p class="eyebrow">AUTO PUBLISHING by Akshay</p>
-        <h1>Google Doc → WordPress</h1>
-        <section class="card import-card">
+        <p class="eyebrow">BLOG PUBLISHING</p>
+        <h1>Blog post</h1>
+        <section class="card form-card import-card">
+          <h2>Google Doc &amp; WordPress</h2>
           <label>Google Doc URL<input id="document-url" type="url" placeholder="https://docs.google.com/document/d/..." autocomplete="off"></label>
           <label>WordPress admin URL<input id="blog-admin-url" type="url" placeholder="https://example.com/wp/wp-admin" autocomplete="off"></label>
-          <button id="blog-save-admin" class="secondary" type="button">Save WordPress URL</button>
-          <button id="import" type="button">Import &amp; queue blog post</button>
+          <div class="blog-import-actions"><button id="blog-save-admin" class="secondary" type="button">Save WordPress URL</button>
+          <button id="import" type="button">Import &amp; queue blog post</button></div>
           <p id="blog-import-status" role="status"></p>
         </section>
-        <section class="card" id="blog-category-card">
+        <section class="card form-card" id="blog-category-card">
+          <h2>Category</h2>
           <div class="field-group">
             <strong>Category <small>(read from the site's WordPress)</small></strong>
             <select id="blog-category"><option value="__auto">Auto — features blog → the features category</option><option value="__none">Don't set a category</option></select>
@@ -390,7 +392,7 @@
             <small id="blog-category-note"></small>
           </div>
         </section>
-        <section class="card" id="blog-image-card">
+        <section class="card form-card" id="blog-image-card">
           <div class="blog-image-heading">
             <div class="blog-image-mark" aria-hidden="true">▧</div>
             <div><h2>Featured image</h2><small>1000 × 400 · added above the blog post</small></div>
@@ -411,11 +413,11 @@
             <button type="button" id="blog-image-save" class="secondary blog-image-save" hidden>Save image to my computer</button>
           </div>
         </section>
-        <section id="blog-empty" class="card">
+        <section id="blog-empty" class="card form-card">
           <p>No draft is queued.</p>
           <small>Paste a Google Doc link above to create a new blog-post draft.</small>
         </section>
-        <section id="draft" class="card" hidden>
+        <section id="draft" class="card form-card" hidden>
           <dl>
             <div><dt>Title</dt><dd id="title"></dd></div>
             <div><dt>Slug</dt><dd id="slug"></dd></div>
@@ -426,7 +428,7 @@
           <details class="blog-button-review" id="blog-button-review" open>
             <summary><span>Button Code / CTA</span><small id="blog-button-summary">Waiting for Google Doc import.</small></summary>
             <textarea id="blog-button-code" rows="3" spellcheck="false" aria-label="Editable button code from the Google Doc" placeholder="Edit the button HTML or change each link’s href here"></textarea>
-            <div class="blog-hub-link-editor"><label for="blog-hub-page">Add a Hub page button</label><select id="blog-hub-page"><option value="">Loading this website’s Hub pages…</option></select><button id="blog-hub-add" class="secondary" type="button" disabled>Add Hub button</button><small id="blog-hub-status">Uses the Landing page button format.</small></div>
+            <div class="blog-hub-link-editor"><label for="blog-hub-page">Hub page button <small>(added automatically when found)</small></label><div class="blog-hub-actions"><select id="blog-hub-page"><option value="">Loading this website’s Hub pages…</option></select><button id="blog-hub-add" class="secondary" type="button" disabled>Add Hub</button></div><button id="blog-hub-reload" class="secondary blog-hub-reload" type="button">Reload pages</button><small id="blog-hub-status">Uses the Landing page button format.</small></div>
             <div class="blog-cta-preview-wrap"><strong>Button preview</strong><div id="blog-button-preview" class="blog-cta-preview"></div></div>
             <button id="blog-button-check" class="secondary blog-cta-check" type="button">Check URLs again</button>
             <ul id="blog-button-results" class="cta-url-results"></ul>
