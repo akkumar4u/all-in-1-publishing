@@ -134,17 +134,17 @@ function publishedCellHtml(row, ticket) {
   return `<td class="published-cell">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">Published ↗</a>` : `<span class="muted" title="The published link is fetched automatically after the WordPress page is published.">${row['Draft Link'] ? 'Waiting for publish' : 'Auto-fetched after publish'}</span>`}</td>`;
 }
 function hubAnchorCode(row) {
-  if (/\bblog\b/i.test(row['Task Type'] || '')) return '';
-  const pkg = state.cache.get(normTicket(row.Ticket))?.pkg, hub = pkg?.hub || {};
-  const title = String(row['Page Title'] || hub.title || hub.pageTitle || '').trim();
+  const isBlog = /\bblog\b/i.test(row['Task Type'] || '');
+  const pkg = state.cache.get(normTicket(row.Ticket))?.pkg, hub = pkg?.hub || {}, blog = pkg?.blog || {};
+  const title = String(row['Page Title'] || (isBlog ? blog.title : '') || hub.title || hub.pageTitle || '').trim();
   const pages = pkg?.sitePages || [];
-  const parentName = String(row['Parent Page'] || hub.parentSlug || '').trim().toLowerCase();
+  const parentName = isBlog ? '' : String(row['Parent Page'] || hub.parentSlug || '').trim().toLowerCase();
   const parent = parentName && pages.find(page => String(page.title || '').trim().toLowerCase() === parentName);
   let targetPath = '';
   const publishedUrl = String(row['Published URL'] || pkg?.publishedUrl || '').trim();
   if (publishedUrl) { try { targetPath = new URL(publishedUrl).pathname; } catch { /* use the draft slug */ } }
   if (!targetPath) {
-    let rawSlug = String(row.Slug || hub.slug || hub.pageSlug || '').trim();
+    let rawSlug = String(row.Slug || (isBlog ? blog.slug : '') || hub.slug || hub.pageSlug || '').trim();
     if (/^https?:\/\//i.test(rawSlug)) { try { rawSlug = new URL(rawSlug).pathname; } catch { rawSlug = ''; } }
     const segments = value => String(value || '').split('/').filter(Boolean).map(part => {
       try { return encodeURIComponent(decodeURIComponent(part)); } catch { return encodeURIComponent(part); }

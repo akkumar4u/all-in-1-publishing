@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.78 (Horizon) — Generate Hub Code for Blog tickets
+- Blog tickets now show and copy Hub Code in the dashboard, using the post title and actual published URL when available, or `/<slug>/` as the preview fallback.
+- Blog Hub links no longer inherit a page parent path; Landing/Comparison continue to include their real parent path.
+
 ## 1.9.77 (Horizon) — Make the Blog Hub button automatic and align the Blog panel
 - Blogs add the site's best matching Research/Hub page as a Landing-style CTA during import; the bulk review/import path uses the same relative URL and button markup.
 - CTA edits are saved before WordPress opens, so the newly added Hub button is included in the post.
