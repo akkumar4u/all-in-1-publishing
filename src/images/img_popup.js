@@ -29,6 +29,19 @@ let state = null;
 let queryEdited = false;
 let cropTimer = 0, cropRun = 0;
 let dragCrop = null;
+let altEdited = false;
+let lastAutoAlt = '';
+
+function syncDefaultAlt() {
+  const title = String(getTitle() || '').trim();
+  if (!title) return;
+  if (lastAutoAlt && title !== lastAutoAlt && altEdited) altEdited = false;
+  if (!altEdited) {
+    altEl.value = title;
+    lastAutoAlt = title;
+    chrome.storage.local.set({ [ALT_KEY]: title });
+  }
+}
 
 async function cropDataUrl(source, yPercent, zoomPercent) {
   const zoom = Math.max(1, Number(zoomPercent || 100) / 100);
@@ -194,6 +207,7 @@ function renderChips() {
   }));
 }
 function suggest() {
+  syncDefaultAlt();
   renderChips();
   if (queryEdited) return;
   queryEl.value = vehicleQuery(titleEl.value);
@@ -239,10 +253,14 @@ if (saveBtn) saveBtn.addEventListener('click', () => {
   document.body.appendChild(a); a.click(); a.remove();
   setStatus(`Saved ${img.filename}.${ext} to your Downloads folder.`, 'success');
 });
-altEl.addEventListener('input', () => chrome.storage.local.set({ [ALT_KEY]: altEl.value.trim() }));
+altEl.addEventListener('input', () => {
+  const value = altEl.value.trim();
+  altEdited = !!value && value !== lastAutoAlt;
+  chrome.storage.local.set({ [ALT_KEY]: value || String(getTitle() || '').trim() });
+});
 window[GLOBAL] = () => {
   if (!state || state.status !== 'done' || !state.dataUrl) return null;
-  const alt = altEl.value.trim() || state.query || queryEl.value.trim();
+  const alt = altEl.value.trim() || String(getTitle() || '').trim() || state.query || queryEl.value.trim();
   // File name = the page slug (from the Google Doc); title + alt text = the vehicle name.
   const slugify = v => (v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const filename = slugify((slugEl && slugEl.value.split('/').filter(Boolean).pop()) || (titleEl && titleEl.value) || state.query) || FALLBACK_NAME;

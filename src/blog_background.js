@@ -257,7 +257,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       const slugify = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const image = {
         dataUrl: lib.croppedDataUrl || lib.dataUrl, width: lib.width, height: lib.height,
-        alt: imgStore.diBlogImageAlt || draft.altText || lib.query || draft.title || '',
+        alt: imgStore.diBlogImageAlt || draft.title || draft.altText || lib.query || '',
         filename: slugify(draft.slug) || slugify(draft.title) || 'blog-image'
       };
       try {
@@ -435,7 +435,7 @@ async function addBlogImageLater(pend, lib) {
     const slugify = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const image = {
       dataUrl: lib.croppedDataUrl || lib.dataUrl, width: lib.width, height: lib.height,
-      alt: imgStore.diBlogImageAlt || pend.alt || lib.query || pend.title || '',
+      alt: imgStore.diBlogImageAlt || pend.title || pend.alt || lib.query || '',
       filename: slugify(pend.slug) || slugify(pend.title) || 'blog-image'
     };
     const up = (await chrome.scripting.executeScript({ target: { tabId: pend.tabId }, world: 'MAIN', func: uploadBlogImage, args: [image] }))[0]?.result;

@@ -438,7 +438,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         const was = imgSection.image;
         imgSection.image = {
           dataUrl: lib.croppedDataUrl || lib.dataUrl, width: lib.width, height: lib.height,
-          alt: (was && was.alt) || st.diLandingImageAlt || lib.query || hub.title,
+          alt: st.diLandingImageAlt || hub.title || (was && was.alt) || lib.query,
           filename: hub.slug || (was && was.filename) || 'landing-banner',
         };
         log.push(`Image Library: using \"${lib.query || 'last image'}\" (${lib.width || '?'}x${lib.height || '?'}) as ${imgSection.image.filename}`);

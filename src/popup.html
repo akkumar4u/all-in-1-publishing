@@ -266,10 +266,10 @@
           <div class="field-group" data-publishing-types="comparison,landing" id="landing-image-box">
             <label for="landing-image-query">Banner image <small>(1400×500 — search text is editable)</small></label>
             <label for="landing-image-source">Image library</label>
-            <select id="landing-image-source"><option value="dealer">Dealer Inspire Image Library</option><option value="cloudinary">Cloudinary Creative Image Library</option></select>
+            <select id="landing-image-source"><option value="cloudinary">Cloudinary Creative Image Library</option><option value="dealer">Dealer Inspire Image Library</option></select>
             <input id="landing-image-query" type="text" placeholder="2026 BMW i4  (year + make + model)" autocomplete="off">
             <div id="landing-image-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0"></div>
-            <input id="landing-image-alt" type="text" placeholder="Alt text (defaults to the search text)" autocomplete="off">
+            <input id="landing-image-alt" type="text" placeholder="Defaults to the page title" autocomplete="off">
             <label style="display:flex;gap:6px;align-items:center;font-size:12px"><input id="landing-image-choose" type="checkbox"> Let me choose the image (otherwise a good match is picked at random)</label>
             <button id="landing-image-fetch" type="button">Find &amp; download image</button>
             <div id="landing-image-choices" hidden style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px"></div>
@@ -413,12 +413,12 @@
           </div>
           <div class="field-group" id="blog-image-box">
             <label for="blog-image-source">Image library</label>
-            <select id="blog-image-source"><option value="dealer">Dealer Inspire Image Library</option><option value="cloudinary">Cloudinary Creative Image Library</option></select>
+            <select id="blog-image-source"><option value="cloudinary">Cloudinary Creative Image Library</option><option value="dealer">Dealer Inspire Image Library</option></select>
             <label for="blog-image-query">Search images <small>Use year + make + model</small></label>
             <input id="blog-image-query" type="text" placeholder="2026 BMW i4" autocomplete="off">
             <div id="blog-image-chips" class="blog-image-chips"></div>
             <label for="blog-image-alt">Image alt text</label>
-            <input id="blog-image-alt" type="text" placeholder="Defaults to the Google Doc alt text" autocomplete="off">
+            <input id="blog-image-alt" type="text" placeholder="Defaults to the post title" autocomplete="off">
             <label class="blog-image-choice-toggle"><input id="blog-image-choose" type="checkbox"><span><strong>Choose the image myself</strong><small>Review matching images before downloading.</small></span></label>
             <button id="blog-image-fetch" type="button">Find blog images</button>
             <div id="blog-image-choices" class="blog-image-choices" hidden></div>

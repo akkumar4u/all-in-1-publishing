@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.85 (Horizon) — Default to Cloudinary and title-based image alt text
+- Cloudinary is now the first/default image library for Landing and Blog image searches.
+- The image Alt Text defaults to the page/post title, while remaining editable; WordPress upload fallbacks also prefer the title.
+
 ## 1.9.84 (Horizon) — Check fixed Hub URLs
 - After preview generation, automatically check the generated button URLs for Service, Research, and Finance Hub pages against the configured website.
 - Confirmed 404s and redirects are highlighted as errors with the checked URL and final destination; working links are green and blocked/unconfirmed checks remain warnings.
