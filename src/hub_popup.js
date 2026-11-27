@@ -246,6 +246,47 @@ const publishingType = document.querySelector('#publishing-type');
 const publishingAdminUrl = document.querySelector('#publishing-admin-url');
 let ctaCheckRun = 0;
 let ctaCheckTimer = 0;
+let hubFixedUrlCheckRun = 0;
+async function checkHubFixedUrls(hub) {
+  const run = ++hubFixedUrlCheckRun;
+  const status = document.querySelector('#hub-fixed-url-status');
+  const results = document.querySelector('#hub-fixed-url-results');
+  if (!status || !results) return;
+  results.replaceChildren();
+  const buttonsHtml = (hub.sections || []).map(section => section.html || '').join('\n');
+  const site = adminUrl?.value.trim() || '';
+  if (!site) {
+    status.textContent = 'Enter the WordPress Admin URL to check fixed Hub URLs.';
+    status.className = 'warn';
+    return;
+  }
+  status.textContent = 'Checking fixed URLs for this Hub page…';
+  status.className = '';
+  try {
+    const { verifyButtonUrls } = await import('./bulk/pipeline.js');
+    const checks = await verifyButtonUrls(buttonsHtml, site);
+    if (run !== hubFixedUrlCheckRun) return;
+    if (!checks.length) {
+      status.textContent = 'No fixed button URLs were found in this preview.';
+      return;
+    }
+    for (const [index, check] of checks.entries()) {
+      const item = document.createElement('li');
+      item.className = check.ok ? 'ok' : check.level === 'error' ? 'error' : 'warn';
+      item.textContent = `${index + 1}. ${check.ok ? '✓' : check.level === 'error' ? '✕' : '!'} ${check.name.replace(/^Button URL — /, '')} — ${check.detail || (check.ok ? 'working' : 'needs attention')}`;
+      results.append(item);
+    }
+    const broken = checks.filter(check => !check.ok && check.level === 'error').length;
+    const unconfirmed = checks.filter(check => !check.ok && check.level !== 'error').length;
+    status.textContent = [broken ? `${broken} broken or redirected URL${broken === 1 ? '' : 's'}` : '', unconfirmed ? `${unconfirmed} URL${unconfirmed === 1 ? '' : 's'} unconfirmed` : ''].filter(Boolean).join(' · ') || `All ${checks.length} fixed URLs are working.`;
+    status.className = broken ? 'error' : unconfirmed ? 'warn' : 'success';
+  } catch (error) {
+    if (run === hubFixedUrlCheckRun) {
+      status.textContent = `Could not check fixed Hub URLs: ${error.message}`;
+      status.className = 'warn';
+    }
+  }
+}
 async function checkComparisonButtonUrls() {
   const run = ++ctaCheckRun;
   const code = (comparisonButtonCode?.value || '').trim();
@@ -713,6 +754,7 @@ function renderPreview(hub) {
   document.querySelector('#p-template').textContent = hub.templateName || 'DI Page Composer';
   setFieldText('#p-meta-title', hub.metaTitle, true);
   setFieldText('#p-meta-desc', hub.metaDescription, true);
+  checkHubFixedUrls(hub);
 
   sectionsContainer.replaceChildren();
 

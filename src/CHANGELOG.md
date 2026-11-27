@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.84 (Horizon) — Check fixed Hub URLs
+- After preview generation, automatically check the generated button URLs for Service, Research, and Finance Hub pages against the configured website.
+- Confirmed 404s and redirects are highlighted as errors with the checked URL and final destination; working links are green and blocked/unconfirmed checks remain warnings.
+
 ## 1.9.83 (Horizon) — Drag to adjust selected image framing
 - Drag the finished Landing or Blog image preview vertically to set the crop position; the framing slider updates at the same time.
 
