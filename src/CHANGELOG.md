@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.9.82 (Horizon) — Exclude Google Docs comment sidebar markup
+- Hub, Landing, Comparison, and Blog parsers now remove Google Docs `docos-*` comment-thread UI before reading content, disclaimers, or button links.
+- This prevents comments such as source notes and reviewer replies from being copied into WordPress content when the Google Docs HTML includes its comment panel.
+
+## 1.9.81 (Horizon) — Adjust selected image framing and remove confirmed broken external links
+- Selected Landing and Blog images now have vertical framing and crop-zoom controls; the adjusted crop is what is saved and uploaded to WordPress.
+- External article links are checked during content review. Confirmed HTTP 404 links are removed while preserving their text, and shown in red with the URL; blocked/unconfirmed URLs are kept.
+- Blog Internal Linking suggestions remain directly below the Google Doc import card.
+
+## 1.9.80 (Horizon) — Put Blog internal links under the Doc import
+- Moved the Blog internal-link suggestions directly below the Google Doc import card so they are visible before the content review area.
+- The existing sitemap-backed checks, suggestions, and approved-link insertion remain connected to the Blog content.
+
 ## 1.9.79 (Horizon) — Add Blog Generate Preview and Hub Code
 - Blog review now has a Generate Preview step matching Landing, with editable button classes/URL and the generated title-link anchor ready to copy.
 - Blog Hub Code uses the published permalink when known, otherwise the post slug as a root-relative path.

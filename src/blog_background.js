@@ -253,10 +253,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const markB = (label, t0) => steps.push({ label, s: Math.round((Date.now() - t0) / 100) / 10 });
     const imgStore = await chrome.storage.local.get([BLOG_IMAGE_KEY, 'diBlogImageAlt']);
     const lib = imgStore[BLOG_IMAGE_KEY];
-    if (lib && lib.status === 'done' && lib.dataUrl) {
+    if (lib && lib.status === 'done' && (lib.croppedDataUrl || lib.dataUrl)) {
       const slugify = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const image = {
-        dataUrl: lib.dataUrl, width: lib.width, height: lib.height,
+        dataUrl: lib.croppedDataUrl || lib.dataUrl, width: lib.width, height: lib.height,
         alt: imgStore.diBlogImageAlt || draft.altText || lib.query || draft.title || '',
         filename: slugify(draft.slug) || slugify(draft.title) || 'blog-image'
       };
@@ -274,7 +274,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       } catch (e) { imageNote = ` The blog image could NOT be uploaded (${e.message}) — add it by hand.`; }
     }
     // The image is still being searched / chosen: fill the post now, the image is added by itself when it is downloaded
-    if (!(lib && lib.status === 'done' && lib.dataUrl) && lib && (lib.status === 'running' || lib.status === 'choose') && Date.now() - (lib.updatedAt || 0) < 10 * 60 * 1000) {
+    if (!(lib && lib.status === 'done' && (lib.croppedDataUrl || lib.dataUrl)) && lib && (lib.status === 'running' || lib.status === 'choose') && Date.now() - (lib.updatedAt || 0) < 10 * 60 * 1000) {
       await chrome.storage.session.set({ [LATE_BLOG_IMG_KEY]: { tabId, since: Date.now(), slug: draft.slug, title: draft.title, alt: draft.altText, autoSave: !!stored[AUTO_SAVE_KEY] } });
       imageNote += ' The blog image is still being ' + (lib.status === 'choose' ? 'chosen' : 'fetched') + ' — it is added to the post by itself as soon as it is downloaded.';
     }
@@ -434,7 +434,7 @@ async function addBlogImageLater(pend, lib) {
     const imgStore = await chrome.storage.local.get('diBlogImageAlt');
     const slugify = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const image = {
-      dataUrl: lib.dataUrl, width: lib.width, height: lib.height,
+      dataUrl: lib.croppedDataUrl || lib.dataUrl, width: lib.width, height: lib.height,
       alt: imgStore.diBlogImageAlt || pend.alt || lib.query || pend.title || '',
       filename: slugify(pend.slug) || slugify(pend.title) || 'blog-image'
     };
@@ -451,7 +451,7 @@ async function addBlogImageLater(pend, lib) {
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== 'local' || !changes[BLOG_IMAGE_KEY] || lateBlogBusy) return;
   const lib = changes[BLOG_IMAGE_KEY].newValue;
-  if (!lib || lib.status !== 'done' || !lib.dataUrl) return;
+  if (!lib || lib.status !== 'done' || !(lib.croppedDataUrl || lib.dataUrl)) return;
   const pend = (await chrome.storage.session.get(LATE_BLOG_IMG_KEY))[LATE_BLOG_IMG_KEY];
   if (!pend || (lib.updatedAt || 0) <= pend.since) return;
   lateBlogBusy = true;

@@ -359,6 +359,9 @@ function extractButtons(markup = '') {
 
 function parseGoogleDoc(sourceHtml) {
   const document = new DOMParser().parseFromString(sourceHtml, 'text/html');
+  // Google Docs' live-page markup can include the comment sidebar in the
+  // copied HTML. Remove it before extracting content or CTA links.
+  document.querySelectorAll('[class*="docos-"], [aria-label*="Comments dialog"]').forEach(node => node.remove());
   // Read the doc's own bold/italic CSS classes before the <style> block
   // that defines them gets stripped out below.
   const formatClassMap = buildFormatClassMap(document);
@@ -369,7 +372,7 @@ function parseGoogleDoc(sourceHtml) {
   const suppliedTitle = fieldValue(lines, 'Post Title');
   const slug = fieldValue(lines, 'Page Slug').replace(/^\/+|\/+$/g, '');
   const buttonField = ['CTA Buttons', 'Buttons', 'CTA Button Code', 'Button Code', 'CTA Button HTML', 'Button HTML'].map(label => fieldValue(lines, label)).find(Boolean) || '';
-  const buttons = extractButtons(sourceHtml) || extractButtons(buttonField);
+  const buttons = extractButtons(document.body.innerHTML) || extractButtons(buttonField);
   const metadata = metadataValues(lines);
   metadata.add(suppliedTitle);
   metadata.add(slug);

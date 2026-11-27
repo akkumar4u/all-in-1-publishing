@@ -16,6 +16,11 @@ if (!panel || !listEl || !statusEl || !rescanBtn) return;
 let rows = [];          // { c, res, tick, urlInput, ... }
 let lastHtml = '';
 let scanId = 0;
+let brokenExternalLinks = new Set();
+const externalChecks = document.createElement('div');
+externalChecks.className = 'il-external-checks';
+externalChecks.setAttribute('aria-live', 'polite');
+panel.prepend(externalChecks);
 
 const ownSlug = () => slugify(($(o.slugId || '_')?.value || '').split('/').filter(Boolean).pop() || '');
 let lastAdmin = '';
@@ -35,8 +40,73 @@ function accepted() {
 }
 
 // hub_popup.js calls this every time it builds Content HTML.
-const transformFn = html => applyLinks(html, accepted(), '');
+function stripBrokenExternalAnchors(html) {
+  const doc = new DOMParser().parseFromString(`<div id="external-clean-root">${html || ''}</div>`, 'text/html');
+  const root = doc.querySelector('#external-clean-root');
+  root.querySelectorAll('a[href]').forEach(anchor => {
+    let url = '';
+    try { url = new URL(anchor.getAttribute('href') || '', lastAdmin).href; } catch { return; }
+    if (!brokenExternalLinks.has(url)) return;
+    anchor.replaceWith(...anchor.childNodes);
+  });
+  return root.innerHTML;
+}
+const transformFn = html => stripBrokenExternalAnchors(applyLinks(html, accepted(), ''));
 window[o.transformHook] = transformFn;
+
+const hostKey = value => { try { return new URL(value).hostname.toLowerCase().replace(/^www\./, ''); } catch { return ''; } };
+function markBrokenLinkPreviews() {
+  document.querySelectorAll('.content-selection-preview a[href]').forEach(anchor => {
+    let url = '';
+    try { url = new URL(anchor.getAttribute('href') || '', lastAdmin).href; } catch { return; }
+    if (!brokenExternalLinks.has(url)) return;
+    anchor.classList.add('il-external-404-preview');
+    anchor.title = `External link returned HTTP 404 and will be removed: ${url}`;
+  });
+}
+async function checkExternalContentLinks(html, adminUrl) {
+  externalChecks.replaceChildren();
+  brokenExternalLinks = new Set();
+  let origin = '';
+  try { origin = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(adminUrl || '') ? adminUrl : `https://${adminUrl}`).origin; } catch {}
+  if (!origin) return;
+  const parsed = new DOMParser().parseFromString(html || '', 'text/html');
+  const links = [...new Map([...parsed.querySelectorAll('a[href]')].map(anchor => {
+    const href = (anchor.getAttribute('href') || '').trim();
+    if (!/^https?:\/\//i.test(href) || /\b(?:button|primary-button)\b/i.test(anchor.getAttribute('class') || '')) return null;
+    try { const target = new URL(href, origin); if (hostKey(target.href) === hostKey(origin)) return null; return [target.href, { url: target.href, label: (anchor.textContent || '').replace(/\s+/g, ' ').trim() || target.hostname }]; }
+    catch { return null; }
+  }).filter(Boolean))].map(([url, item]) => ({ ...item, url }));
+  const heading = document.createElement('strong'); heading.textContent = 'External link checks'; externalChecks.append(heading);
+  if (!links.length) { const note = document.createElement('small'); note.textContent = 'No external content links to check.'; externalChecks.append(note); return; }
+  const note = document.createElement('small'); note.textContent = `Checking ${links.length} external content link${links.length === 1 ? '' : 's'}…`; externalChecks.append(note);
+  const list = document.createElement('ul'); externalChecks.append(list);
+  let cursor = 0;
+  const results = new Array(links.length);
+  await Promise.all(Array.from({ length: Math.min(4, links.length) }, async () => {
+    while (cursor < links.length) {
+      const index = cursor++, link = links[index];
+      const result = await checkPage(link.url, link.label);
+      results[index] = { ...link, result };
+      if (!result.exists && Number(result.status) === 404) brokenExternalLinks.add(link.url);
+    }
+  }));
+  list.replaceChildren(...results.map(({ url, label, result }) => {
+    const item = document.createElement('li');
+    if (!result.exists && Number(result.status) === 404) {
+      item.className = 'il-external-404'; item.textContent = `${label} — HTTP 404 · link removed from the WordPress content · ${url}`;
+    } else if (result.exists) {
+      item.className = 'il-external-ok'; item.textContent = `${label} — HTTP ${result.status} · working · ${url}`;
+    } else {
+      item.className = 'il-external-warn'; item.textContent = `${label} — ${result.status ? `HTTP ${result.status}` : 'unconfirmed'} · link kept because it could not be confirmed broken · ${url}`;
+    }
+    return item;
+  }));
+  const brokenCount = brokenExternalLinks.size;
+  note.textContent = `${links.length} checked · ${brokenCount} confirmed 404${brokenCount === 1 ? '' : 's'} removed. Blocked or unreachable URLs are kept.`;
+  markBrokenLinkPreviews();
+  if (brokenCount) resync();
+}
 
 const BADGE = { verified: ['✓ verified', 'il-ok'], check: ['? check', 'il-check'], missing: ['✗ not found', 'il-miss'], pending: ['… checking', 'il-pend'], manual: ['✎ your link', 'il-check'] };
 
@@ -331,7 +401,14 @@ const adminEl = $(o.adminUrlId);
 let adminTimer;
 const maybeRescan = () => { if (lastHtml && originOf() && originOf() !== scannedOrigin) scan(); };
 const onAdminInput = () => { clearTimeout(adminTimer); adminTimer = setTimeout(maybeRescan, 900); };
-const onImported = e => { lastHtml = e.detail?.bodyHtml || ''; lastAdmin = e.detail?.adminUrl || ''; scan(); };
+const onImported = e => {
+  lastHtml = e.detail?.bodyHtml || ''; lastAdmin = e.detail?.adminUrl || '';
+  scan();
+  checkExternalContentLinks(lastHtml, lastAdmin).catch(error => {
+    externalChecks.replaceChildren();
+    const note = document.createElement('small'); note.className = 'il-external-warn'; note.textContent = `External links could not be checked: ${error.message}`; externalChecks.append(note);
+  });
+};
 const onRescan = () => { if (lastHtml) { clearSiteCache(); scan(); } };
 adminEl?.addEventListener('input', onAdminInput);
 adminEl?.addEventListener('change', maybeRescan);

@@ -375,6 +375,10 @@ function extractCompareRows(doc) {
 
 function parseComparisonDoc(sourceHtml) {
   const doc = new DOMParser().parseFromString(sourceHtml, 'text/html');
+  // Google Docs' live-page markup can include the comment sidebar in the
+  // copied HTML. These threads are not document content; strip them before
+  // reading fields, disclaimers, CTA markup, or article paragraphs.
+  doc.querySelectorAll('[class*="docos-"], [aria-label*="Comments dialog"]').forEach(node => node.remove());
   // Read the doc's own bold/italic CSS classes before the <style> block
   // that defines them gets stripped out below.
   const formatClassMap = buildFormatClassMap(doc);

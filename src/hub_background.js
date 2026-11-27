@@ -434,10 +434,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const loadLibraryImage = async () => {
       const st = await chrome.storage.local.get(['diLandingImage', 'diLandingImageAlt']);
       const lib = st.diLandingImage;
-      if (lib && lib.status === 'done' && lib.dataUrl) {
+      if (lib && lib.status === 'done' && (lib.croppedDataUrl || lib.dataUrl)) {
         const was = imgSection.image;
         imgSection.image = {
-          dataUrl: lib.dataUrl, width: lib.width, height: lib.height,
+          dataUrl: lib.croppedDataUrl || lib.dataUrl, width: lib.width, height: lib.height,
           alt: (was && was.alt) || st.diLandingImageAlt || lib.query || hub.title,
           filename: hub.slug || (was && was.filename) || 'landing-banner',
         };
@@ -2481,7 +2481,7 @@ async function addImageLater(pend, lib) {
     if (tab.windowId != null) await chrome.windows.update(tab.windowId, { focused: true }).catch(() => {});
     await swWait(400);
     const alt = (await chrome.storage.local.get('diLandingImageAlt')).diLandingImageAlt;
-    const image = { dataUrl: lib.dataUrl, width: lib.width, height: lib.height, alt: alt || lib.query || pend.title, filename: pend.slug || 'landing-banner' };
+    const image = { dataUrl: lib.croppedDataUrl || lib.dataUrl, width: lib.width, height: lib.height, alt: alt || lib.query || pend.title, filename: pend.slug || 'landing-banner' };
     try {                                     // same clean-name rule as the normal run
       const site = siteSlug(new URL(tab.url).hostname);
       const chk = await execIn(pend.tabId, wpMediaNameTaken, [image.filename]);

@@ -16,6 +16,8 @@ if (!queryEl || !altEl || !btn) return;
 const chooseBox = $(p + '-choose'), choices = $(p + '-choices');
 const statusEl = $(p + '-status'), preview = $(p + '-preview');
 const saveBtn = $(p + '-save'), chipsEl = $(p + '-chips');
+const cropBox = $(p + '-crop-box'), cropYEl = $(p + '-crop-y'), cropZoomEl = $(p + '-zoom');
+const cropYValue = $(p + '-crop-value'), cropZoomValue = $(p + '-zoom-value');
 const slugEl = { get value() { return getSlug(); } };
 const titleEl = { get value() { return getTitle(); } };
 const hasTitle = true;
@@ -25,12 +27,61 @@ const dealerHost = () => { try { const u = ['admin-url', 'publishing-admin-url',
 
 let state = null;
 let queryEdited = false;
+let cropTimer = 0, cropRun = 0;
+
+async function cropDataUrl(source, yPercent, zoomPercent) {
+  const zoom = Math.max(1, Number(zoomPercent || 100) / 100);
+  const y = Math.max(0, Math.min(100, Number(yPercent ?? 50))) / 100;
+  if (zoom <= 1 && y === 0.5) return source;
+  const bitmap = await createImageBitmap(await (await fetch(source)).blob());
+  const ratio = WIDTH / HEIGHT;
+  let cropWidth = bitmap.width, cropHeight = bitmap.height;
+  if (cropWidth / cropHeight > ratio) cropWidth = cropHeight * ratio;
+  else cropHeight = cropWidth / ratio;
+  cropWidth /= zoom; cropHeight /= zoom;
+  const sx = Math.max(0, (bitmap.width - cropWidth) / 2);
+  const sy = Math.max(0, (bitmap.height - cropHeight) * y);
+  const canvas = new OffscreenCanvas(WIDTH, HEIGHT);
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) throw new Error('Could not create the image crop preview.');
+  ctx.drawImage(bitmap, sx, sy, cropWidth, cropHeight, 0, 0, WIDTH, HEIGHT);
+  bitmap.close?.();
+  let blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: .9 });
+  if (blob.size > 990 * 1024) blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: .78 });
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return `data:image/jpeg;base64,${btoa(binary)}`;
+}
+
+function queueCrop() {
+  if (!state || state.status !== 'done' || !state.dataUrl || !cropYEl || !cropZoomEl) return;
+  if (cropYEl.value !== '50' && cropZoomEl.value === '100') cropZoomEl.value = '120';
+  const y = Number(cropYEl.value), zoom = Number(cropZoomEl.value), run = ++cropRun;
+  if (cropYValue) cropYValue.value = `${y}%`;
+  if (cropZoomValue) cropZoomValue.value = `${zoom}%`;
+  clearTimeout(cropTimer);
+  cropTimer = setTimeout(async () => {
+    try {
+      const croppedDataUrl = await cropDataUrl(state.dataUrl, y, zoom);
+      if (run !== cropRun || !state) return;
+      const next = { ...state, cropY: y, cropZoom: zoom, croppedDataUrl };
+      state = next;
+      preview.src = croppedDataUrl;
+      chrome.storage.local.set({ [KEY]: next });
+      setStatus(`Crop preview updated · vertical position ${y}% · zoom ${zoom}%.`, 'success');
+    } catch (error) { setStatus(`Could not adjust this crop: ${error.message}`, 'error'); }
+  }, 120);
+}
+cropYEl?.addEventListener('input', queueCrop);
+cropZoomEl?.addEventListener('input', queueCrop);
 
 function setStatus(text, kind) { statusEl.textContent = text || ''; statusEl.className = 'status' + (kind ? ' ' + kind : ''); }
 
 function render() {
   choices.hidden = true;
   if (saveBtn) saveBtn.hidden = !(state && state.status === 'done' && state.dataUrl);
+  if (cropBox) cropBox.hidden = !(state && state.status === 'done' && state.dataUrl);
   if (!state) { setStatus(''); preview.hidden = true; btn.disabled = false; return; }
   btn.disabled = state.status === 'running';
   if (state.status === 'choose' && state.candidates?.length) {
@@ -82,7 +133,12 @@ function render() {
   if (state.status === 'error') { setStatus(state.error || 'Could not get the image.', 'error'); preview.hidden = true; return; }
   if (state.status === 'done' && state.dataUrl) {
     setStatus(`Got ${state.width}×${state.height}: "${state.imageTitle || state.query}". ${state.savedAs ? '✔ Saved in Downloads as ' + state.savedAs + '. ' : state.saveError ? '⚠ NOT saved to Downloads (' + state.saveError + ') - use the Save button. ' : ''}${DONE_NOTE}`, state.saveError ? 'error' : 'success');
-    preview.src = state.dataUrl; preview.hidden = false;
+    if (cropBox) cropBox.hidden = false;
+    if (cropYEl) cropYEl.value = String(state.cropY ?? 50);
+    if (cropZoomEl) cropZoomEl.value = String(state.cropZoom ?? 100);
+    if (cropYValue) cropYValue.value = `${state.cropY ?? 50}%`;
+    if (cropZoomValue) cropZoomValue.value = `${state.cropZoom ?? 100}%`;
+    preview.src = state.croppedDataUrl || state.dataUrl; preview.hidden = false;
   }
 }
 
@@ -134,7 +190,16 @@ btn.addEventListener('click', () => {
 });
 
 chrome.storage.local.get(KEY).then(r => { state = r[KEY] || null; if (state?.query && !queryEl.value) { queryEl.value = state.query; queryEdited = true; } render(); suggest(); });
-chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes[KEY]) { state = changes[KEY].newValue || null; render(); } });
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes[KEY]) return;
+  const previous = state, next = changes[KEY].newValue || null;
+  state = next;
+  if (previous?.status === 'running' && next?.status === 'done') {
+    state = { ...next, cropY: 50, cropZoom: 100, croppedDataUrl: '' };
+    chrome.storage.local.set({ [KEY]: state });
+  }
+  render();
+});
 
 if (saveBtn) saveBtn.addEventListener('click', () => {
   // a normal browser download of the captured file, named after the page slug — also a quick check that the image really exists
@@ -157,7 +222,7 @@ window[GLOBAL] = () => {
   // File name = the page slug (from the Google Doc); title + alt text = the vehicle name.
   const slugify = v => (v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const filename = slugify((slugEl && slugEl.value.split('/').filter(Boolean).pop()) || (titleEl && titleEl.value) || state.query) || FALLBACK_NAME;
-  return { dataUrl: state.dataUrl, width: state.width, height: state.height, alt, filename };
+  return { dataUrl: state.croppedDataUrl || state.dataUrl, width: state.width, height: state.height, alt, filename, cropY: state.cropY ?? 50 };
 };
 }
 

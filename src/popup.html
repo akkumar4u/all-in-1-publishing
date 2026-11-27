@@ -275,6 +275,7 @@
             <div id="landing-image-choices" hidden style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px"></div>
             <div id="landing-image-status" class="status"></div>
             <img id="landing-image-preview" alt="" hidden style="max-width:100%;margin-top:6px;border-radius:6px">
+            <div id="landing-image-crop-box" class="image-crop-controls" hidden><label>Vertical framing <output id="landing-image-crop-value">50%</output><input id="landing-image-crop-y" type="range" min="0" max="100" value="50"></label><label>Crop zoom <output id="landing-image-zoom-value">100%</output><input id="landing-image-zoom" type="range" min="100" max="150" value="100"></label><small>Move the image up or down in the banner. Increase zoom slightly to reveal a different crop.</small></div>
             <button type="button" id="landing-image-save" hidden style="margin-top:6px">Save image to my computer</button>
           </div>
 
@@ -383,6 +384,13 @@
           <button id="import" type="button">Import &amp; queue blog post</button></div>
           <p id="blog-import-status" role="status"></p>
         </section>
+        <div id="blog-il-panel" class="il-panel content-selection" hidden>
+          <strong>Internal link suggestions</strong>
+          <small>Review suggested links from the Google Doc. Tick only the links you want added to the Blog post.</small>
+          <div id="blog-il-list" class="il-list"></div>
+          <p id="blog-il-status" role="status"></p>
+          <button id="blog-il-rescan" class="secondary" type="button">Re-check links</button>
+        </div>
         <section class="card form-card" id="blog-category-card">
           <h2>Category</h2>
           <div class="field-group">
@@ -410,6 +418,7 @@
             <div id="blog-image-choices" class="blog-image-choices" hidden></div>
             <div id="blog-image-status" class="status" role="status"></div>
             <div class="blog-image-preview-wrap"><img id="blog-image-preview" class="blog-image-preview" alt="" hidden></div>
+            <div id="blog-image-crop-box" class="image-crop-controls" hidden><label>Vertical framing <output id="blog-image-crop-value">50%</output><input id="blog-image-crop-y" type="range" min="0" max="100" value="50"></label><label>Crop zoom <output id="blog-image-zoom-value">100%</output><input id="blog-image-zoom" type="range" min="100" max="150" value="100"></label><small>Move the image up or down. Increase zoom slightly to reveal a different crop.</small></div>
             <button type="button" id="blog-image-save" class="secondary blog-image-save" hidden>Save image to my computer</button>
           </div>
         </section>
@@ -447,13 +456,6 @@
             <strong>Choose Content HTML</strong>
             <small>Review the formatted imported Google Doc content and select only the sections to push to WordPress.</small>
             <div id="blog-content-selection-items"></div>
-          </div>
-          <div id="blog-il-panel" class="il-panel content-selection" hidden>
-            <strong>Internal link suggestions</strong>
-            <small>Fixed phrases (e.g. “new vehicles” → /new-vehicles/) are checked on the live site. Tick the ones you approve; unticked phrases stay plain text.</small>
-            <div id="blog-il-list" class="il-list"></div>
-            <p id="blog-il-status" role="status"></p>
-            <button id="blog-il-rescan" class="secondary" type="button">Re-check links</button>
           </div>
           <details>
             <summary>Blog content HTML</summary>

@@ -38,6 +38,15 @@
 .il-panel .il-pages-list div { padding: 1px 0; overflow-wrap: anywhere; color: #2d403b; }
 
 .il-panel [hidden] { display: none !important; }
+.il-external-checks { margin:0 0 9px; padding:8px; border:1px solid #e2e6e5; border-radius:6px; background:#fff; }
+.il-external-checks > strong, .il-external-checks > small { display:block; font-size:10px; }
+.il-external-checks > small { margin-top:3px; color:#65716e; line-height:1.4; }
+.il-external-checks ul { display:grid; gap:4px; margin:6px 0 0; padding:0; list-style:none; }
+.il-external-checks li { padding:5px 7px; border-radius:4px; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
+.il-external-404 { background:#fff0f0; color:#a52222; border:1px solid #efc5c5; font-weight:650; }
+.il-external-ok { background:#eff8f1; color:#22633c; }
+.il-external-warn { color:#765a1b; background:#fff9e8; }
+.il-external-404-preview { color:#a52222 !important; background:#fff0f0 !important; text-decoration:line-through !important; text-decoration-thickness:1px; }
 
 .il-panel .il-w { cursor: pointer; border-radius: 3px; padding: 0 1px; }
 .il-panel .il-w:hover { background: #dbeee6; }

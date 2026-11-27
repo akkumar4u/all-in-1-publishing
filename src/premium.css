@@ -118,6 +118,10 @@ details summary:hover { color: var(--brand-2); }
   text-align: right; font-size: 10.5px; letter-spacing: .6px; color: var(--muted); margin: 6px 4px 2px;
 }
 .signature b { font-weight: 800; background: linear-gradient(90deg, var(--brand-2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.image-crop-controls { display:grid; gap:8px; margin-top:8px; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:#f9fbfa; }
+.image-crop-controls label { display:grid; grid-template-columns:1fr auto; gap:3px 8px; margin:0; font-size:11px; font-weight:650; }
+.image-crop-controls input[type=range] { grid-column:1/-1; width:100%; margin:0; accent-color:var(--brand-2); }
+.image-crop-controls small { color:var(--muted); font-size:10px; line-height:1.35; }
 
 /* ---------- Scrollbars ---------- */
 * { scrollbar-width: thin; scrollbar-color: #b9cfc8 transparent; }
