@@ -61,10 +61,11 @@ async function showDraft(draft, fillStatus) {
   document.querySelector('#target').textContent = draft.adminUrl || 'No target set';
   const buttonCode = draft.buttons || '';
   activeBlogCtaDraft = draft;
-  blogHubCodePreview.hidden = true;
+  blogHubCodePreview.hidden = false;
   blogHubCodeAnchor.value = draft.title || '';
   blogHubCodeUrl.value = blogHubPath(draft);
   refreshBlogHubCode();
+  blogPreviewStatus.textContent = 'Hub Code generated from the Blog title and URL. Edit the URL if needed, then copy it.';
   blogButtonCode.value = buttonCode;
   blogButtonReview.hidden = false;
   renderBlogButtonPreview(buttonCode, draft.adminUrl || adminUrl.value || '');

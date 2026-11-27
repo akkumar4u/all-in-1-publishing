@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.86 (Horizon) — Strip escaped Docs comments and show Blog Hub Code
+- Strip complete Google Docs `docos-*` comment threads before parsing, including when comment markup is HTML-escaped; Hub/Landing/Comparison and Blog parsers both handle it.
+- Blog Hub page Linking Code is now generated and shown as soon as a Blog draft is imported, without requiring Generate Preview first.
+
 ## 1.9.85 (Horizon) — Default to Cloudinary and title-based image alt text
 - Cloudinary is now the first/default image library for Landing and Blog image searches.
 - The image Alt Text defaults to the page/post title, while remaining editable; WordPress upload fallbacks also prefer the title.

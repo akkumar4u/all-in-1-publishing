@@ -373,7 +373,32 @@ function extractCompareRows(doc) {
     .filter(row => row.left || row.middle || row.right);
 }
 
+function stripGoogleDocsCommentMarkup(source = '') {
+  // Some Docs exports contain the live comment sidebar as HTML-escaped text,
+  // so DOM selectors alone cannot see its docos-* elements. Remove any whole
+  // comment div subtree before parsing, whether its tags are literal or escaped.
+  const divTags = /(?:&lt;\/?div\b[\s\S]*?&gt;|<\/?div\b[^>]*>)/gi;
+  let output = '', cursor = 0, token;
+  while ((token = divTags.exec(source))) {
+    if (!/^(?:&lt;|<)div\b/i.test(token[0]) || !/\bdocos-/i.test(token[0])) continue;
+    const start = token.index;
+    let depth = 1, end = divTags.lastIndex, inner;
+    while ((inner = divTags.exec(source))) {
+      if (/^(?:&lt;|<)div\b/i.test(inner[0])) depth++;
+      else depth--;
+      end = divTags.lastIndex;
+      if (!depth) break;
+    }
+    output += source.slice(cursor, start);
+    cursor = end;
+    divTags.lastIndex = end;
+    if (depth) return output; // malformed trailing comment markup: never leak its text
+  }
+  return output + source.slice(cursor);
+}
+
 function parseComparisonDoc(sourceHtml) {
+  sourceHtml = stripGoogleDocsCommentMarkup(String(sourceHtml || ''));
   const doc = new DOMParser().parseFromString(sourceHtml, 'text/html');
   // Google Docs' live-page markup can include the comment sidebar in the
   // copied HTML. These threads are not document content; strip them before
