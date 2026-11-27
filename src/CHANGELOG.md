@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.83 (Horizon) — Drag to adjust selected image framing
+- Drag the finished Landing or Blog image preview vertically to set the crop position; the framing slider updates at the same time.
+
 ## 1.9.82 (Horizon) — Exclude Google Docs comment sidebar markup
 - Hub, Landing, Comparison, and Blog parsers now remove Google Docs `docos-*` comment-thread UI before reading content, disclaimers, or button links.
 - This prevents comments such as source notes and reviewer replies from being copied into WordPress content when the Google Docs HTML includes its comment panel.

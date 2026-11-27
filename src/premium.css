@@ -122,6 +122,8 @@ details summary:hover { color: var(--brand-2); }
 .image-crop-controls label { display:grid; grid-template-columns:1fr auto; gap:3px 8px; margin:0; font-size:11px; font-weight:650; }
 .image-crop-controls input[type=range] { grid-column:1/-1; width:100%; margin:0; accent-color:var(--brand-2); }
 .image-crop-controls small { color:var(--muted); font-size:10px; line-height:1.35; }
+#landing-image-preview { cursor:grab; touch-action:none; user-select:none; }
+#landing-image-preview.is-crop-dragging { cursor:grabbing; }
 
 /* ---------- Scrollbars ---------- */
 * { scrollbar-width: thin; scrollbar-color: #b9cfc8 transparent; }

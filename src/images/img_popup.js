@@ -28,6 +28,7 @@ const dealerHost = () => { try { const u = ['admin-url', 'publishing-admin-url',
 let state = null;
 let queryEdited = false;
 let cropTimer = 0, cropRun = 0;
+let dragCrop = null;
 
 async function cropDataUrl(source, yPercent, zoomPercent) {
   const zoom = Math.max(1, Number(zoomPercent || 100) / 100);
@@ -75,6 +76,29 @@ function queueCrop() {
 }
 cropYEl?.addEventListener('input', queueCrop);
 cropZoomEl?.addEventListener('input', queueCrop);
+
+// Let the user reposition the crop directly on the finished preview. Dragging
+// the photo down reveals more of its upper edge; the slider remains in sync.
+preview?.addEventListener('pointerdown', event => {
+  if (!state || state.status !== 'done' || !cropYEl || !cropZoomEl) return;
+  event.preventDefault();
+  preview.setPointerCapture(event.pointerId);
+  dragCrop = { pointerId: event.pointerId, startY: event.clientY, cropY: Number(cropYEl.value || 50), height: Math.max(1, preview.getBoundingClientRect().height) };
+  preview.classList.add('is-crop-dragging');
+});
+preview?.addEventListener('pointermove', event => {
+  if (!dragCrop || dragCrop.pointerId !== event.pointerId) return;
+  const delta = (event.clientY - dragCrop.startY) / dragCrop.height * 100;
+  cropYEl.value = String(Math.max(0, Math.min(100, Math.round(dragCrop.cropY - delta))));
+  cropYEl.dispatchEvent(new Event('input', { bubbles: true }));
+});
+const finishCropDrag = event => {
+  if (!dragCrop || (event && dragCrop.pointerId !== event.pointerId)) return;
+  dragCrop = null;
+  preview.classList.remove('is-crop-dragging');
+};
+preview?.addEventListener('pointerup', finishCropDrag);
+preview?.addEventListener('pointercancel', finishCropDrag);
 
 function setStatus(text, kind) { statusEl.textContent = text || ''; statusEl.className = 'status' + (kind ? ' ' + kind : ''); }
 
@@ -132,7 +156,7 @@ function render() {
   if (state.status === 'running') { setStatus(state.step || 'Working…'); preview.hidden = true; return; }
   if (state.status === 'error') { setStatus(state.error || 'Could not get the image.', 'error'); preview.hidden = true; return; }
   if (state.status === 'done' && state.dataUrl) {
-    setStatus(`Got ${state.width}×${state.height}: "${state.imageTitle || state.query}". ${state.savedAs ? '✔ Saved in Downloads as ' + state.savedAs + '. ' : state.saveError ? '⚠ NOT saved to Downloads (' + state.saveError + ') - use the Save button. ' : ''}${DONE_NOTE}`, state.saveError ? 'error' : 'success');
+    setStatus(`Got ${state.width}×${state.height}: "${state.imageTitle || state.query}". Drag the preview up or down to adjust framing, or use the slider. ${state.savedAs ? '✔ Saved in Downloads as ' + state.savedAs + '. ' : state.saveError ? '⚠ NOT saved to Downloads (' + state.saveError + ') - use the Save button. ' : ''}${DONE_NOTE}`, state.saveError ? 'error' : 'success');
     if (cropBox) cropBox.hidden = false;
     if (cropYEl) cropYEl.value = String(state.cropY ?? 50);
     if (cropZoomEl) cropZoomEl.value = String(state.cropZoom ?? 100);
